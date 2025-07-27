@@ -26,17 +26,22 @@ impl FromWorld for LevelAssets {
 /// A system that spawns the main level.
 pub fn spawn_level(
     mut commands: Commands,
-    player_assets: Res<PlayerAssets>,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    mut mesh_assets: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn((
-        Name::new("Level"),
-        Transform::default(),
-        Visibility::default(),
-        StateScoped(Screen::Gameplay),
-        children![
-            player(400.0, &player_assets, &mut texture_atlas_layouts),
-            Name::new("Gameplay Music")
-        ],
-    ));
+    commands.spawn(DirectionalLight::default());
+    let ball_mesh = mesh_assets.add(Sphere::new(1.0));
+    for h in 1..16 {
+        let color = Color::hsl(h as f32 / 16.0 * 360.0, 1.0, 0.5);
+        let ball_material = materials.add(StandardMaterial {
+            base_color: color,
+            ..Default::default()
+        });
+        commands.spawn((
+            Transform::from_translation(Vec3::new((-8.0 + h as f32) * 2.0, 0.0, -50.0)),
+            Mesh3d(ball_mesh.clone()),
+            MeshMaterial3d(ball_material),
+            StateScoped(Screen::Gameplay),
+        ));
+    }
 }

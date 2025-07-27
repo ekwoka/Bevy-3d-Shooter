@@ -74,10 +74,8 @@ struct Player;
 
 fn handled_player_input(
     trigger: Trigger<Fired<Move>>,
-    mut players: Query<&mut MovementController, With<Player>>,
+    mut controller: Single<&mut MovementController, With<Player>>,
 ) {
-    let mut controller = players.get_mut(trigger.target()).unwrap();
-
     controller.intent += trigger.value;
 }
 

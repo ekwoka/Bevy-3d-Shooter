@@ -22,47 +22,35 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<PlayerAssets>();
     app.load_resource::<PlayerAssets>();
 
+    println!("Adding player observer");
+
     app.add_observer(handled_player_input);
+    app.add_observer(handled_player_looking);
 
     // Record directional input as movement controls.
 }
 
 /// The player character.
-pub fn player(
-    max_speed: f32,
-    player_assets: &PlayerAssets,
-    texture_atlas_layouts: &mut Assets<TextureAtlasLayout>,
-) -> impl Bundle {
-    // A texture atlas is a way to split a single image into a grid of related images.
-    // You can learn more in this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
-    let layout = TextureAtlasLayout::from_grid(UVec2::splat(32), 6, 2, Some(UVec2::splat(1)), None);
-    let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let player_animation = PlayerAnimation::new();
-
+pub fn player() -> impl Bundle {
+    println!("Spawning Player");
     (
         Name::new("Player"),
         Player,
-        Sprite {
-            image: player_assets.ducky.clone(),
-            texture_atlas: Some(TextureAtlas {
-                layout: texture_atlas_layout,
-                index: player_animation.get_atlas_index(),
-            }),
-            ..default()
-        },
-        Transform::from_scale(Vec2::splat(8.0).extend(1.0)),
-        MovementController {
-            max_speed,
-            ..default()
-        },
-        ScreenWrap,
-        player_animation,
+        Camera3d::default(),
+        Transform::default(),
         actions!(
             Player[(
                 Action::<Move>::new(),
                 DeadZone::default(),
                 SmoothNudge::default(),
-                Bindings::spawn((Cardinal::wasd_keys(), Axial::left_stick(),))
+                Bindings::spawn((
+                    Cardinal::wasd_keys(),
+                    Axial::left_stick()
+                ))
+            ),
+            (
+                Action::<Look>::new(),
+                Bindings::spawn(Spawn((Binding::mouse_motion(), Negate::all(), SwizzleAxis::YXZ)))
             )]
         ),
     )
@@ -72,11 +60,17 @@ pub fn player(
 #[reflect(Component)]
 struct Player;
 
-fn handled_player_input(
-    trigger: Trigger<Fired<Move>>,
-    mut controller: Single<&mut MovementController, With<Player>>,
+fn handled_player_input(trigger: Trigger<Fired<Move>>, mut _controller: Single<&Player>) {
+    println!("Intent: {}", trigger.value);
+}
+
+fn handled_player_looking(
+    trigger: Trigger<Fired<Look>>,
+    mut player: Single<&mut Transform, With<Player>>,
 ) {
-    controller.intent += trigger.value;
+    println!("looking: {}", trigger.value);
+    player.rotation.y += trigger.value.y / 1000.0;
+    player.rotation.x += trigger.value.x / 1000.0;
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -107,3 +101,7 @@ impl FromWorld for PlayerAssets {
 #[derive(Debug, InputAction)]
 #[action_output(Vec2)]
 struct Move;
+
+#[derive(Debug, InputAction)]
+#[action_output(Vec2)]
+struct Look;

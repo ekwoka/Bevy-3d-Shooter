@@ -27,6 +27,11 @@ pub(super) fn plugin(app: &mut App) {
     app.add_observer(handled_player_input);
     app.add_observer(handled_player_looking);
 
+    app.add_systems(
+        Update,
+        (apply_rotation, apply_movement.after(apply_rotation)),
+    );
+
     // Record directional input as movement controls.
 }
 
@@ -35,14 +40,13 @@ pub fn player() -> impl Bundle {
     println!("Spawning Player");
     (
         Name::new("Player"),
-        Player,
+        Player::default(),
         Camera3d::default(),
         Transform::default(),
         actions!(
             Player[(
                 Action::<Move>::new(),
                 DeadZone::default(),
-                SmoothNudge::default(),
                 Bindings::spawn((
                     Cardinal::wasd_keys(),
                     Axial::left_stick()
@@ -56,21 +60,52 @@ pub fn player() -> impl Bundle {
     )
 }
 
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
 #[reflect(Component)]
-struct Player;
-
-fn handled_player_input(trigger: Trigger<Fired<Move>>, mut _controller: Single<&Player>) {
-    println!("Intent: {}", trigger.value);
+struct Player {
+    movement_intent: Vec2,
+    rotation_intent: Vec2,
 }
 
-fn handled_player_looking(
-    trigger: Trigger<Fired<Look>>,
-    mut player: Single<&mut Transform, With<Player>>,
-) {
+fn handled_player_input(trigger: Trigger<Fired<Move>>, mut player: Single<&mut Player>) {
+    println!("movement Intent: {}", trigger.value);
+    player.movement_intent += trigger.value;
+}
+
+fn handled_player_looking(trigger: Trigger<Fired<Look>>, mut player: Single<&mut Player>) {
     println!("looking: {}", trigger.value);
-    player.rotation.y += trigger.value.y / 1000.0;
-    player.rotation.x += trigger.value.x / 1000.0;
+    player.rotation_intent += trigger.value;
+}
+
+fn apply_rotation(
+    query: Single<(&mut Transform, &mut Player)>,
+    time: Res<Time>,
+    window: Single<&Window, With<bevy::window::PrimaryWindow>>,
+) {
+    if !window.focused {
+        return;
+    }
+    let sensitivity = 100.0 / window.width().min(window.height());
+    let delta = time.delta_secs() * sensitivity;
+    let (mut transform, mut player) = query.into_inner();
+    let (mut yaw, mut pitch, _) = transform.rotation.to_euler(EulerRot::YXZ);
+    yaw += player.rotation_intent.y * delta;
+    pitch += player.rotation_intent.x * delta;
+    pitch = pitch.clamp(-1.57, 1.57);
+    transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, 0.0);
+    player.rotation_intent = Vec2::ZERO;
+}
+
+fn apply_movement(query: Single<(&mut Transform, &mut Player)>, time: Res<Time>) {
+    let (mut transform, mut player) = query.into_inner();
+    let delta = time.delta_secs();
+    let intent = player.movement_intent;
+    println!("Movement intent: {:?}", intent);
+    let forward = transform.forward() * intent.y;
+    let right = transform.right() * intent.x;
+    let to_move = (forward + right).normalize_or_zero().with_y(0.0);
+    transform.translation += to_move * delta * 50.0;
+    player.movement_intent = Vec2::ZERO;
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]

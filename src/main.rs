@@ -15,6 +15,8 @@ mod theme;
 use avian3d::prelude::*;
 use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy_enhanced_input::prelude::EnhancedInputPlugin;
+use bevy_tnua::prelude::TnuaControllerPlugin;
+use bevy_tnua_avian3d::TnuaAvian3dPlugin;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -45,6 +47,8 @@ impl Plugin for AppPlugin {
                 }),
             EnhancedInputPlugin,
             PhysicsPlugins::default(),
+            TnuaAvian3dPlugin::new(PhysicsSchedule),
+            TnuaControllerPlugin::new(PhysicsSchedule),
         ));
 
         // Add other plugins.

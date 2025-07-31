@@ -1,11 +1,14 @@
 //! Player-specific behavior.
 
+use std::f32::consts::TAU;
+
 use bevy::{
     image::{ImageLoaderSettings, ImageSampler},
     prelude::*,
 };
 
 use bevy_enhanced_input::prelude::*;
+use bevy_tnua::prelude::{TnuaBuiltinWalk, TnuaController};
 
 use crate::{
     asset_tracking::LoadResource,
@@ -29,10 +32,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_observer(handled_player_input);
     app.add_observer(handled_player_looking);
 
-    app.add_systems(
-        Update,
-        (apply_rotation, apply_movement.after(apply_rotation)),
-    );
+    app.add_systems(Update, apply_movement);
 
     // Record directional input as movement controls.
 }
@@ -47,6 +47,7 @@ pub fn player() -> impl Bundle {
         Transform::default(),
         RigidBody::Dynamic,
         Collider::sphere(0.5),
+        TnuaController::default(),
         actions!(
             Player[(
                 Action::<Move>::new(),
@@ -54,7 +55,9 @@ pub fn player() -> impl Bundle {
                 Bindings::spawn((
                     Cardinal::wasd_keys(),
                     Axial::left_stick()
-                ))
+                )),
+                Negate::y(),
+                SwizzleAxis::XZY,
             ),
             (
                 Action::<Look>::new(),
@@ -67,7 +70,7 @@ pub fn player() -> impl Bundle {
 #[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
 #[reflect(Component)]
 struct Player {
-    movement_intent: Vec2,
+    movement_intent: Vec3,
     rotation_intent: Vec2,
 }
 
@@ -76,9 +79,23 @@ fn handled_player_input(trigger: Trigger<Fired<Move>>, mut player: Single<&mut P
     player.movement_intent += trigger.value;
 }
 
-fn handled_player_looking(trigger: Trigger<Fired<Look>>, mut player: Single<&mut Player>) {
+fn handled_player_looking(
+    trigger: Trigger<Fired<Look>>,
+    mut transform: Single<&mut Transform, With<Player>>,
+    time: Res<Time>,
+    window: Single<&Window, With<bevy::window::PrimaryWindow>>,
+) {
     println!("looking: {}", trigger.value);
-    player.rotation_intent += trigger.value;
+    if !window.focused {
+        return;
+    }
+    let sensitivity = 100.0 / window.width().min(window.height());
+    let delta = time.delta_secs() * sensitivity;
+    let (mut yaw, mut pitch, _) = transform.rotation.to_euler(EulerRot::YXZ);
+    yaw += trigger.value.y * delta;
+    pitch += trigger.value.x * delta;
+    pitch = pitch.clamp(-1.57, 1.57);
+    transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, 0.0);
 }
 
 fn apply_rotation(
@@ -86,30 +103,23 @@ fn apply_rotation(
     time: Res<Time>,
     window: Single<&Window, With<bevy::window::PrimaryWindow>>,
 ) {
-    if !window.focused {
-        return;
-    }
-    let sensitivity = 100.0 / window.width().min(window.height());
-    let delta = time.delta_secs() * sensitivity;
-    let (mut transform, mut player) = query.into_inner();
-    let (mut yaw, mut pitch, _) = transform.rotation.to_euler(EulerRot::YXZ);
-    yaw += player.rotation_intent.y * delta;
-    pitch += player.rotation_intent.x * delta;
-    pitch = pitch.clamp(-1.57, 1.57);
-    transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, 0.0);
-    player.rotation_intent = Vec2::ZERO;
 }
 
-fn apply_movement(query: Single<(&mut Transform, &mut Player)>, time: Res<Time>) {
-    let (mut transform, mut player) = query.into_inner();
-    let delta = time.delta_secs();
-    let intent = player.movement_intent;
-    println!("Movement intent: {:?}", intent);
-    let forward = transform.forward() * intent.y;
-    let right = transform.right() * intent.x;
-    let to_move = (forward + right).normalize_or_zero().with_y(0.0);
-    transform.translation += to_move * delta * 50.0;
-    player.movement_intent = Vec2::ZERO;
+fn apply_movement(query: Single<(&mut TnuaController, &Transform, &mut Player)>) {
+    let (mut controller, transform, mut player) = query.into_inner();
+    let yaw = transform.rotation.to_euler(EulerRot::YXZ).0;
+    let yaw_quat = Quat::from_axis_angle(Vec3::Y, yaw);
+    controller.basis(TnuaBuiltinWalk {
+        // The `desired_velocity` determines how the character will move.
+        desired_velocity: yaw_quat * player.movement_intent * 8.0,
+        // The `float_height` must be greater (even if by little) from the distance between the
+        // character's center and the lowest point of its collider.
+        float_height: 2.0,
+        // Restrict the max slope so that the player cannot walk up slightly angled chairs.
+        max_slope: TAU / 8.0,
+        ..default()
+    });
+    player.movement_intent = Vec3::ZERO;
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -138,7 +148,7 @@ impl FromWorld for PlayerAssets {
 }
 
 #[derive(Debug, InputAction)]
-#[action_output(Vec2)]
+#[action_output(Vec3)]
 struct Move;
 
 #[derive(Debug, InputAction)]

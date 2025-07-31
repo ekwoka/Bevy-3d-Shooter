@@ -12,6 +12,7 @@ mod menus;
 mod screens;
 mod theme;
 
+use avian3d::prelude::*;
 use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy_enhanced_input::prelude::EnhancedInputPlugin;
 
@@ -43,6 +44,7 @@ impl Plugin for AppPlugin {
                     ..default()
                 }),
             EnhancedInputPlugin,
+            PhysicsPlugins::default(),
         ));
 
         // Add other plugins.

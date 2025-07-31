@@ -15,6 +15,8 @@ use crate::{
     },
 };
 
+use avian3d::prelude::*;
+
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Player>();
     app.add_input_context::<Player>();
@@ -43,6 +45,8 @@ pub fn player() -> impl Bundle {
         Player::default(),
         Camera3d::default(),
         Transform::default(),
+        RigidBody::Dynamic,
+        Collider::sphere(0.5),
         actions!(
             Player[(
                 Action::<Move>::new(),

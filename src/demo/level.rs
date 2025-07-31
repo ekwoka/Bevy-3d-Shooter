@@ -1,5 +1,6 @@
 //! Spawn the main level.
 
+use avian3d::prelude::{Collider, RigidBody};
 use bevy::prelude::*;
 
 use crate::{asset_tracking::LoadResource, screens::Screen};
@@ -27,6 +28,11 @@ pub fn spawn_level(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands.spawn(DirectionalLight::default());
+    commands.spawn((
+        RigidBody::Static,
+        Collider::cuboid(200.0, 5.0, 200.0),
+        Transform::from_xyz(0.0, -10.0, 0.0),
+    ));
     let ball_mesh = mesh_assets.add(Sphere::new(1.0));
     for h in 1..16 {
         let color = Color::hsl(h as f32 / 16.0 * 360.0, 1.0, 0.5);

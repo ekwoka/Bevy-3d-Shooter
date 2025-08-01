@@ -23,7 +23,6 @@ impl FromWorld for LevelAssets {
 /// A system that spawns the main level.
 pub fn spawn_level(
     mut commands: Commands,
-    camera: Query<Entity, With<Camera2d>>,
     mut mesh_assets: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -46,9 +45,6 @@ pub fn spawn_level(
             MeshMaterial3d(ball_material),
             StateScoped(Screen::Gameplay),
         ));
-    }
-    if let Some(camera) = camera.iter().next() {
-        commands.entity(camera).despawn();
     }
     commands.spawn(super::player::player());
 }

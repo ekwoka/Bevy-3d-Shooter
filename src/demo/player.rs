@@ -16,7 +16,7 @@ use avian3d::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Player>();
-    app.add_input_context::<Player>();
+    app.add_input_context::<DefaultInputContext>();
 
     app.register_type::<PlayerAssets>();
     app.load_resource::<PlayerAssets>();
@@ -24,7 +24,9 @@ pub(super) fn plugin(app: &mut App) {
     println!("Adding player observer");
 
     app.add_observer(setup_player);
-    app.add_observer(handled_player_input);
+    app.add_observer(apply_default_binding);
+    app.add_observer(remove_default_binding);
+
     app.add_observer(handled_player_looking);
 
     app.add_systems(
@@ -38,23 +40,35 @@ pub(super) fn plugin(app: &mut App) {
 /// The player character.
 pub fn player() -> impl Bundle {
     println!("Spawning Player");
-    Player::default()
+    Player
 }
 
 fn setup_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
     commands.entity(trigger.target()).insert((
         Name::new("Player"),
+        DefaultInputContext,
         Transform::default(),
         RigidBody::Dynamic,
         Collider::sphere(0.5),
         TnuaController::default(),
-        default_input_context(),
     ));
+}
+
+fn apply_default_binding(trigger: Trigger<OnAdd, DefaultInputContext>, mut commands: Commands) {
+    commands
+        .entity(trigger.target())
+        .insert(default_input_context());
+}
+
+fn remove_default_binding(trigger: Trigger<OnRemove, DefaultInputContext>, mut commands: Commands) {
+    commands
+        .entity(trigger.target())
+        .despawn_related::<Actions<DefaultInputContext>>();
 }
 
 fn default_input_context() -> impl Bundle {
     actions!(
-        Player[(
+        DefaultInputContext[(
             Action::<Move>::new(),
             DeadZone::default(),
             SmoothNudge::default(),
@@ -75,15 +89,10 @@ fn default_input_context() -> impl Bundle {
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
 #[reflect(Component)]
-struct Player {
-    movement_intent: Vec3,
-    rotation_intent: Vec2,
-}
+struct Player;
 
-fn handled_player_input(trigger: Trigger<Fired<Move>>, mut player: Single<&mut Player>) {
-    println!("movement Intent: {}", trigger.value);
-    player.movement_intent += trigger.value;
-}
+#[derive(Component)]
+struct DefaultInputContext;
 
 fn handled_player_looking(
     trigger: Trigger<Fired<Look>>,
@@ -112,15 +121,16 @@ fn sync_player_camera(
 }
 
 fn apply_movement(
-    query: Single<(&mut TnuaController, &mut Player)>,
+    mut controller: Single<&mut TnuaController>,
     transform: Single<&Transform, With<Camera3d>>,
+    move_action: Single<&Action<Move>, Changed<Action<Move>>>,
 ) {
-    let (mut controller, mut player) = query.into_inner();
     let yaw = transform.rotation.to_euler(EulerRot::YXZ).0;
     let yaw_quat = Quat::from_axis_angle(Vec3::Y, yaw);
+    println!("desired_velocity: {:?}", yaw_quat * ***move_action);
     controller.basis(TnuaBuiltinWalk {
         // The `desired_velocity` determines how the character will move.
-        desired_velocity: yaw_quat * player.movement_intent,
+        desired_velocity: yaw_quat * ***move_action,
         // The `float_height` must be greater (even if by little) from the distance between the
         // character's center and the lowest point of its collider.
         float_height: 2.0,
@@ -128,7 +138,6 @@ fn apply_movement(
         max_slope: TAU / 8.0,
         ..default()
     });
-    player.movement_intent = Vec3::ZERO;
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]

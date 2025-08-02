@@ -18,7 +18,7 @@ pub(super) fn plugin(app: &mut App) {
 
 /// The player character.
 pub fn player() -> impl Bundle {
-    println!("Spawning Player");
+    tracing::info!("Spawning Player");
     Player
 }
 
@@ -49,6 +49,7 @@ fn handled_player_looking(
     let sensitivity = 100.0 / window.width().min(window.height());
     let delta = time.delta_secs() * sensitivity;
     let (mut yaw, mut pitch, _) = camera.rotation.to_euler(EulerRot::YXZ);
+    tracing::debug!(yaw = yaw, pitch = pitch, "Player is Looking Around");
     yaw += trigger.value.y * delta;
     pitch += trigger.value.x * delta;
     pitch = pitch.clamp(-1.57, 1.57);

@@ -17,7 +17,7 @@ use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy_enhanced_input::prelude::EnhancedInputPlugin;
 use bevy_tnua::prelude::TnuaControllerPlugin;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
-use bevy_trenchbroom::prelude::{TrenchBroomConfig, TrenchBroomPlugins, TrenchBroomServer};
+use bevy_trenchbroom::prelude::*;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -50,7 +50,13 @@ impl Plugin for AppPlugin {
             PhysicsPlugins::default(),
             TnuaAvian3dPlugin::new(PhysicsSchedule),
             TnuaControllerPlugin::new(PhysicsSchedule),
-            TrenchBroomPlugins(TrenchBroomConfig::new("bevy_shooter")),
+            TrenchBroomPlugins(
+                TrenchBroomConfig::new("bevy_shooter").default_solid_spawn_hooks(|| {
+                    SpawnHooks::new()
+                        .convex_collider()
+                        .smooth_by_default_angle()
+                }),
+            ),
         ));
 
         app.add_systems(Startup, write_trenchbroom_config);

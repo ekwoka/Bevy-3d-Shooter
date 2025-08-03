@@ -1,2 +1,11 @@
 # Rust builds
 /target
+.DS_Store
+
+# TrenchBroom
+assets/**/autosave/
+assets/**/*.log
+assets/**/*.pts
+assets/**/*.texinfo.json
+assets/**/*.prt
+assets/**/*.bsp

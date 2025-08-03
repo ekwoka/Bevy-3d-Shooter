@@ -24,10 +24,10 @@ pub fn player() -> impl Bundle {
 }
 
 fn setup_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
+    tracing::info!("Setting Up Spawned Player");
     commands.entity(trigger.target()).insert((
         Name::new("Player"),
         super::movement::DefaultInputContext,
-        Transform::default(),
         RigidBody::Dynamic,
         Collider::sphere(0.5),
         TnuaController::default(),

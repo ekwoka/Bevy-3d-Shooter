@@ -18,7 +18,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// The player character.
-pub fn player() -> impl Bundle {
+pub fn _player() -> impl Bundle {
     tracing::info!("Spawning Player");
     Player
 }

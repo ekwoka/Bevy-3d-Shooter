@@ -4,6 +4,7 @@ use bevy::prelude::*;
 
 use bevy_enhanced_input::prelude::*;
 use bevy_tnua::prelude::TnuaController;
+use bevy_trenchbroom::prelude::*;
 
 use avian3d::prelude::*;
 
@@ -33,6 +34,7 @@ fn setup_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
     ));
 }
 
+#[point_class]
 #[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
 #[reflect(Component)]
 struct Player;

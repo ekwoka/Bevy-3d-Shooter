@@ -17,6 +17,7 @@ use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy_enhanced_input::prelude::EnhancedInputPlugin;
 use bevy_tnua::prelude::TnuaControllerPlugin;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
+use bevy_trenchbroom::prelude::{TrenchBroomConfig, TrenchBroomPlugins, TrenchBroomServer};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -49,7 +50,10 @@ impl Plugin for AppPlugin {
             PhysicsPlugins::default(),
             TnuaAvian3dPlugin::new(PhysicsSchedule),
             TnuaControllerPlugin::new(PhysicsSchedule),
+            TrenchBroomPlugins(TrenchBroomConfig::new("bevy_shooter")),
         ));
+
+        app.add_systems(Startup, write_trenchbroom_config);
 
         // Add other plugins.
         app.add_plugins((
@@ -111,4 +115,19 @@ fn spawn_camera(mut commands: Commands) {
         Camera3d::default(),
         Transform::default(),
     ));
+}
+
+fn write_trenchbroom_config(server: Res<TrenchBroomServer>, type_registry: Res<AppTypeRegistry>) {
+    info!("Writing TrenchBroom config");
+    // Errors at this point usually mean that the player has not installed TrenchBroom.
+    // The error messages give more details about the exact issue.
+    if let Err(err) = server
+        .config
+        .write_game_config_to_default_directory(&type_registry.read())
+    {
+        warn!("Could not write TrenchBroom game config: {err}");
+    }
+    if let Err(err) = server.config.add_game_to_preferences_in_default_directory() {
+        warn!("Could not add game to TrenchBroom preferences: {err}");
+    }
 }

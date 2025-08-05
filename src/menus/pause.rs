@@ -1,6 +1,10 @@
 //! The pause menu.
 
-use bevy::{input::common_conditions::input_just_pressed, prelude::*};
+use bevy::{
+    input::common_conditions::input_just_pressed,
+    prelude::*,
+    window::{CursorGrabMode, PrimaryWindow},
+};
 
 use crate::{menus::Menu, screens::Screen, theme::widget};
 
@@ -12,7 +16,9 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_pause_menu(mut commands: Commands) {
+fn spawn_pause_menu(mut commands: Commands, mut window: Single<&mut Window, With<PrimaryWindow>>) {
+    window.cursor_options.visible = true;
+    window.cursor_options.grab_mode = CursorGrabMode::None;
     commands.spawn((
         widget::ui_root("Pause Menu"),
         GlobalZIndex(2),
@@ -38,6 +44,11 @@ fn quit_to_title(_: Trigger<Pointer<Click>>, mut next_screen: ResMut<NextState<S
     next_screen.set(Screen::Title);
 }
 
-fn go_back(mut next_menu: ResMut<NextState<Menu>>) {
+fn go_back(
+    mut next_menu: ResMut<NextState<Menu>>,
+    mut window: Single<&mut Window, With<PrimaryWindow>>,
+) {
+    window.cursor_options.visible = false;
+    window.cursor_options.grab_mode = CursorGrabMode::Locked;
     next_menu.set(Menu::None);
 }

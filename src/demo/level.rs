@@ -66,10 +66,10 @@ fn setup_sphere(
     mut mesh_assets: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    tracing::info!("Setting Up Spawned Ball");
-    commands.entity(trigger.target()).insert((
+    let entity = trigger.target();
+    tracing::info!(?entity, "Setting Up Spawned Ball");
+    commands.entity(entity).insert((
         Mesh3d(mesh_assets.add(Sphere::new(1.0))),
         MeshMaterial3d(materials.add(StandardMaterial::default())),
-        StateScoped(Screen::Gameplay),
     ));
 }

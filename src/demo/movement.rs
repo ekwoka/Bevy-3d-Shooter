@@ -72,12 +72,12 @@ fn apply_default_binding(trigger: Trigger<OnAdd, DefaultInputContext>, mut comma
 fn remove_default_binding(
     trigger: Trigger<OnRemove, DefaultInputContext>,
     mut commands: Commands,
-    mut actions: Query<(Entity, &ActionOf<DefaultInputContext>)>,
+    mut actions: Query<&mut Actions<DefaultInputContext>>,
 ) {
     let owner = trigger.target();
-    for (entity, action) in actions.iter_mut() {
-        if action.entity() == owner {
-            commands.entity(entity).despawn();
-        }
-    }
+    let actions = actions.get_mut(owner).unwrap();
+    actions.into_iter().for_each(|entity| {
+        info!(?entity, "Removing Entity");
+        commands.entity(entity).try_despawn();
+    });
 }

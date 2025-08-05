@@ -69,8 +69,15 @@ fn apply_default_binding(trigger: Trigger<OnAdd, DefaultInputContext>, mut comma
         .insert(DefaultInputContext::bindings());
 }
 
-fn remove_default_binding(trigger: Trigger<OnRemove, DefaultInputContext>, mut commands: Commands) {
-    commands
-        .entity(trigger.target())
-        .despawn_related::<Actions<DefaultInputContext>>();
+fn remove_default_binding(
+    trigger: Trigger<OnRemove, DefaultInputContext>,
+    mut commands: Commands,
+    mut actions: Query<(Entity, &ActionOf<DefaultInputContext>)>,
+) {
+    let owner = trigger.target();
+    for (entity, action) in actions.iter_mut() {
+        if action.entity() == owner {
+            commands.entity(entity).despawn();
+        }
+    }
 }

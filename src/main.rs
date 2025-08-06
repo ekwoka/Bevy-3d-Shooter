@@ -13,7 +13,11 @@ mod screens;
 mod theme;
 
 use avian3d::prelude::*;
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::{
+    asset::AssetMetaCheck,
+    image::{ImageAddressMode, ImageSampler, ImageSamplerDescriptor},
+    prelude::*,
+};
 use bevy_enhanced_input::prelude::EnhancedInputPlugin;
 use bevy_tnua::prelude::TnuaControllerPlugin;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
@@ -45,17 +49,22 @@ impl Plugin for AppPlugin {
                     }
                     .into(),
                     ..default()
+                })
+                .set(ImagePlugin {
+                    default_sampler: default_image_sampler_descriptor(),
                 }),
             EnhancedInputPlugin,
             PhysicsPlugins::default(),
             TnuaAvian3dPlugin::new(PhysicsSchedule),
             TnuaControllerPlugin::new(PhysicsSchedule),
             TrenchBroomPlugins(
-                TrenchBroomConfig::new("bevy_shooter").default_solid_spawn_hooks(|| {
-                    SpawnHooks::new()
-                        .convex_collider()
-                        .smooth_by_default_angle()
-                }),
+                TrenchBroomConfig::new("bevy_shooter")
+                    .default_solid_spawn_hooks(|| {
+                        SpawnHooks::new()
+                            .convex_collider()
+                            .smooth_by_default_angle()
+                    })
+                    .texture_sampler(texture_sampler()),
             ),
         ));
 
@@ -135,5 +144,21 @@ fn write_trenchbroom_config(server: Res<TrenchBroomServer>, type_registry: Res<A
     }
     if let Err(err) = server.config.add_game_to_preferences_in_default_directory() {
         warn!("Could not add game to TrenchBroom preferences: {err}");
+    }
+}
+
+fn texture_sampler() -> ImageSampler {
+    let mut sampler = ImageSampler::linear();
+    *sampler.get_or_init_descriptor() = default_image_sampler_descriptor();
+    sampler
+}
+
+pub(crate) fn default_image_sampler_descriptor() -> ImageSamplerDescriptor {
+    ImageSamplerDescriptor {
+        address_mode_u: ImageAddressMode::Repeat,
+        address_mode_v: ImageAddressMode::Repeat,
+        address_mode_w: ImageAddressMode::Repeat,
+        anisotropy_clamp: 16,
+        ..ImageSamplerDescriptor::linear()
     }
 }

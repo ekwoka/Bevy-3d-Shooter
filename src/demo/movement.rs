@@ -53,7 +53,7 @@ impl DefaultInputContext {
                 )),
                 Negate::y(),
                 SwizzleAxis::XZY,
-                Scale::splat(8.0)
+                Scale::splat(12.0)
             ),
             (
                 Action::<Look>::new(),

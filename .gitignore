@@ -9,3 +9,9 @@ assets/**/*.pts
 assets/**/*.texinfo.json
 assets/**/*.prt
 assets/**/*.bsp
+
+# Tooling
+.bin
+
+# Temp Binary Assets
+assets/**/*.glb

@@ -21,7 +21,9 @@ fn apply_movement(
 ) {
     let yaw = transform.rotation.to_euler(EulerRot::YXZ).0;
     let yaw_quat = Quat::from_axis_angle(Vec3::Y, yaw);
-    info!("Jumping: {:?}", ***jump_action);
+    if ***jump_action {
+        info!("Jumping: {:?}", ***jump_action);
+    }
 
     controller.basis(TnuaBuiltinWalk {
         desired_velocity: yaw_quat * ***move_action,

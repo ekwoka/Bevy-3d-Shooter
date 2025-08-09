@@ -23,7 +23,12 @@ pub fn _player() -> impl Bundle {
     Player
 }
 
-fn setup_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
+fn setup_player(
+    trigger: Trigger<OnAdd, Player>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    camera: Single<Entity, With<Camera3d>>,
+) {
     tracing::info!("Setting Up Spawned Player");
     commands.entity(trigger.target()).insert((
         Name::new("Player"),
@@ -32,6 +37,11 @@ fn setup_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
         Collider::sphere(0.5),
         TnuaController::default(),
     ));
+    commands.entity(*camera).insert(children![(
+        Name::new("FNF2000"),
+        SceneRoot(asset_server.load("models/fnf2000.glb#Scene0")),
+        Transform::from_xyz(0.15, -0.35, -1.0),
+    )]);
 }
 
 #[point_class]

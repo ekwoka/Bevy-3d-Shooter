@@ -1,6 +1,5 @@
 //! Spawn the main level.
 
-use avian3d::prelude::{Collider, RigidBody};
 use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
@@ -49,11 +48,6 @@ pub fn spawn_level(
         Level,
         SceneRoot(level_assets.level.clone()),
         StateScoped(Screen::Gameplay),
-    ));
-    commands.spawn((
-        RigidBody::Static,
-        Collider::cuboid(200.0, 5.0, 200.0),
-        Transform::from_xyz(0.0, -10.0, 0.0),
     ));
 }
 

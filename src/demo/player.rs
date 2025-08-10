@@ -1,5 +1,7 @@
 //! Player-specific behavior.
 
+use std::f32::consts::PI;
+
 use bevy::prelude::*;
 
 use bevy_enhanced_input::prelude::*;
@@ -27,21 +29,25 @@ fn setup_player(
     trigger: Trigger<OnAdd, Player>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    camera: Single<Entity, With<Camera3d>>,
 ) {
     tracing::info!("Setting Up Spawned Player");
     commands.entity(trigger.target()).insert((
-        Name::new("Player"),
+        Name::new("PlayerRoot"),
         super::movement::DefaultInputContext,
         RigidBody::Dynamic,
         Collider::sphere(0.5),
         TnuaController::default(),
+        children![(
+            Name::new("PlayerView"),
+            PlayerView,
+            Transform::from_xyz(0.0, 0.0, 0.0),
+            children![(
+                Name::new("FNF2000"),
+                SceneRoot(asset_server.load("models/fnf2000.glb#Scene0")),
+                Transform::from_xyz(0.15, -0.35, -1.0)
+            )]
+        )],
     ));
-    commands.entity(*camera).insert(children![(
-        Name::new("FNF2000"),
-        SceneRoot(asset_server.load("models/fnf2000.glb#Scene0")),
-        Transform::from_xyz(0.15, -0.35, -1.0),
-    )]);
 }
 
 #[point_class]
@@ -49,9 +55,13 @@ fn setup_player(
 #[reflect(Component)]
 struct Player;
 
+#[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
+#[reflect(Component)]
+struct PlayerView;
+
 fn handled_player_looking(
     trigger: Trigger<Fired<super::movement::Look>>,
-    mut camera: Single<&mut Transform, With<Camera3d>>,
+    mut player_view: Single<&mut Transform, With<PlayerView>>,
     time: Res<Time>,
     window: Single<&Window, With<bevy::window::PrimaryWindow>>,
 ) {
@@ -60,17 +70,21 @@ fn handled_player_looking(
     }
     let sensitivity = 100.0 / window.width().min(window.height());
     let delta = time.delta_secs() * sensitivity;
-    let (mut yaw, mut pitch, _) = camera.rotation.to_euler(EulerRot::YXZ);
+    let (mut yaw, mut pitch, _) = player_view.rotation.to_euler(EulerRot::YXZ);
     tracing::debug!(yaw = yaw, pitch = pitch, "Player is Looking Around");
     yaw += trigger.value.y * delta;
     pitch += trigger.value.x * delta;
     pitch = pitch.clamp(-1.57, 1.57);
-    camera.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, 0.0);
+    player_view.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, 0.0);
 }
 
 fn sync_player_camera(
     mut camera: Single<&mut Transform, With<Camera3d>>,
-    player: Single<&Transform, (With<Player>, Without<Camera3d>)>,
+    player_root: Single<&Transform, (With<Player>, Without<Camera3d>)>,
+
+    player_view: Single<&Transform, (With<PlayerView>, Without<Camera3d>, Without<Player>)>,
 ) {
-    camera.translation = player.translation;
+    camera.translation = player_root.translation;
+    camera.rotation = player_view.rotation;
+    camera.rotate_y(PI);
 }

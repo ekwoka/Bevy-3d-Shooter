@@ -8,7 +8,13 @@ use bevy::prelude::*;
 pub mod level;
 mod movement;
 pub mod player;
+pub mod target;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins((level::plugin, movement::plugin, player::plugin));
+    app.add_plugins((
+        level::plugin,
+        movement::plugin,
+        player::plugin,
+        target::plugin,
+    ));
 }

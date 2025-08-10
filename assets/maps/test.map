@@ -122,27 +122,12 @@
 }
 // entity 3
 {
-"classname" "ball"
-"origin" "-248 -104 50"
-}
-// entity 4
-{
-"classname" "ball"
-"origin" "-232 168 50"
-}
-// entity 5
-{
-"classname" "ball"
-"origin" "264 -104 50"
-}
-// entity 6
-{
-"classname" "ball"
-"origin" "136 152 50"
-}
-// entity 7
-{
 "classname" "light_point"
 "origin" "1360 240 82"
 "shadows_enabled" "true"
+}
+// entity 4
+{
+"classname" "target"
+"origin" "552 168 56"
 }

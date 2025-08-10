@@ -37,6 +37,7 @@ fn setup_player(
         RigidBody::Dynamic,
         Collider::sphere(0.5),
         TnuaController::default(),
+        LockedAxes::ROTATION_LOCKED,
         children![(
             Name::new("PlayerView"),
             PlayerView,

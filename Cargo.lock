@@ -432,6 +432,7 @@ dependencies = [
  "bevy-tnua",
  "bevy-tnua-avian3d",
  "bevy_enhanced_input",
+ "bevy_gizmos",
  "bevy_simple_subsecond_system",
  "bevy_trenchbroom",
  "log",

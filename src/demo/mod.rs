@@ -5,6 +5,7 @@
 
 use bevy::prelude::*;
 
+pub mod debug;
 pub mod level;
 mod movement;
 pub mod player;
@@ -12,6 +13,7 @@ pub mod target;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((
+        debug::plugin,
         level::plugin,
         movement::plugin,
         player::plugin,

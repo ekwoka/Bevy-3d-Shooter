@@ -1,3 +1,4 @@
+use super::debug::DebugLines;
 use avian3d::prelude::*;
 use bevy::prelude::*;
 use bevy_trenchbroom::prelude::*;
@@ -10,8 +11,7 @@ struct Target;
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Target>();
     app.add_observer(setup_target);
-    app.add_systems(Update, (handle_click, draw_debug_lines));
-    app.insert_resource(DebugLines::new());
+    app.add_systems(Update, handle_click);
 }
 
 fn setup_target(
@@ -55,44 +55,17 @@ fn handle_click(
         ) {
             info!("Hit: {:?}", hit);
             info!("hit point: {:?}", start + direction * (hit.distance * 2.0));
-            lines.push(
-                start,
-                Vec3::from(direction) * (hit.distance + 2.0),
-                Color::linear_rgb(1.0, 0.0, 0.0),
-            );
+            lines.push(Box::new(move |gizmos: &mut Gizmos| {
+                gizmos.ray(
+                    start,
+                    Vec3::from(direction) * (hit.distance + 2.0),
+                    Color::linear_rgb(1.0, 0.0, 0.0),
+                )
+            }));
         } else {
-            lines.push(start, Vec3::from(direction) * max_distance, Color::WHITE);
+            lines.push(Box::new(move |gizmos: &mut Gizmos| {
+                gizmos.ray(start, Vec3::from(direction) * max_distance, Color::WHITE)
+            }));
         }
-    }
-}
-
-fn draw_debug_lines(time: Res<Time>, mut lines: ResMut<DebugLines>, mut gizmos: Gizmos) {
-    let delta = time.delta();
-    for (start, end, color, timer) in lines.0.iter_mut() {
-        gizmos.ray(*start, *end, *color);
-        timer.tick(delta);
-    }
-    lines.clean();
-}
-
-#[derive(Resource)]
-struct DebugLines(Vec<(Vec3, Vec3, Color, Timer)>);
-
-impl DebugLines {
-    pub fn new() -> Self {
-        Self(Vec::new())
-    }
-
-    pub fn push(&mut self, start: Vec3, end: Vec3, color: Color) {
-        self.0.push((
-            start,
-            end,
-            color,
-            Timer::from_seconds(10.0, TimerMode::Once),
-        ));
-    }
-
-    pub fn clean(&mut self) {
-        self.0.retain(|(_, _, _, timer)| !timer.finished());
     }
 }

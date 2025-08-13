@@ -1,41 +1,49 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
+    #[cfg(debug_assertions)]
     app.add_systems(Update, draw_debug_lines);
     app.insert_resource(DebugLines::new());
 }
 
-fn draw_debug_lines(
-    time: Res<Time>,
-    mut lines: ResMut<DebugLines>,
-    #[cfg(debug_assertions)] mut gizmos: Gizmos,
-) {
+#[cfg_attr(not(debug_assertions), allow(dead_code))]
+fn draw_debug_lines(time: Res<Time>, mut lines: ResMut<DebugLines>, mut gizmos: Gizmos) {
     let delta = time.delta();
-    let mut should_clean = false;
-    for (_cb, timer) in lines.0.iter_mut() {
-        #[cfg(debug_assertions)]
-        _cb(&mut gizmos);
-        timer.tick(delta);
-        if timer.just_finished() {
-            should_clean = true;
-        }
-    }
+    let should_clean = lines.run_all(&mut gizmos, delta);
     if should_clean {
         lines.clean();
     }
 }
 
 #[derive(Resource)]
+#[cfg_attr(not(debug_assertions), allow(dead_code))]
 pub struct DebugLines(Vec<(Box<dyn Fn(&mut Gizmos) + Send + Sync>, Timer)>);
 
+#[cfg_attr(not(debug_assertions), allow(dead_code))]
 impl DebugLines {
     pub fn new() -> Self {
         Self(Vec::new())
     }
 
-    pub fn push(&mut self, func: Box<dyn Fn(&mut Gizmos) + Send + Sync>) {
+    pub fn run_all(&mut self, gizmos: &mut Gizmos, delta: Duration) -> bool {
         self.0
-            .push((func, Timer::from_seconds(5.0, TimerMode::Once)));
+            .iter_mut()
+            .map(move |(cb, timer)| {
+                cb(gizmos);
+                timer.tick(delta);
+                timer
+            })
+            .filter(|timer| timer.just_finished())
+            .count()
+            != 0
+    }
+
+    pub fn push<T: Fn(&mut Gizmos) + Send + Sync + 'static>(&mut self, _func: T) {
+        #[cfg(debug_assertions)]
+        self.0
+            .push((Box::new(_func), Timer::from_seconds(5.0, TimerMode::Once)));
     }
 
     pub fn clean(&mut self) {

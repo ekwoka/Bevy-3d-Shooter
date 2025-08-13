@@ -55,17 +55,13 @@ fn handle_click(
         ) {
             info!("Hit: {:?}", hit);
             info!("hit point: {:?}", start + direction * (hit.distance * 2.0));
-            lines.push(Box::new(move |gizmos: &mut Gizmos| {
-                gizmos.ray(
-                    start,
-                    Vec3::from(direction) * (hit.distance + 2.0),
-                    Color::linear_rgb(1.0, 0.0, 0.0),
-                )
-            }));
+            lines.push(move |gizmos: &mut Gizmos| {
+                let vector = Vec3::from(direction) * (hit.distance + 2.0);
+                gizmos.ray(start, vector, Color::linear_rgb(1.0, 0.0, 0.0))
+            });
         } else {
-            lines.push(Box::new(move |gizmos: &mut Gizmos| {
-                gizmos.ray(start, Vec3::from(direction) * max_distance, Color::WHITE)
-            }));
+            let vector = Vec3::from(direction) * max_distance;
+            lines.push(move |gizmos: &mut Gizmos| gizmos.ray(start, vector, Color::WHITE));
         }
     }
 }

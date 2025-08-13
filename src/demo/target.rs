@@ -34,6 +34,7 @@ fn handle_click(
     mouse: Res<ButtonInput<MouseButton>>,
     origin: Single<&Transform, With<Camera3d>>,
     spatial_query: SpatialQuery,
+    targets: Query<&Target>,
     mut lines: ResMut<DebugLines>,
 ) {
     if mouse.just_pressed(MouseButton::Left) {
@@ -55,6 +56,13 @@ fn handle_click(
         ) {
             info!("Hit: {:?}", hit);
             info!("hit point: {:?}", start + direction * (hit.distance * 2.0));
+            if let Ok(target) = targets.get(hit.entity) {
+                info!("Target: {:?}", target);
+                lines.push(move |gizmos: &mut Gizmos| {
+                    let vector = Vec3::from(direction) * (hit.distance + 2.0);
+                    gizmos.ray(start, vector, Color::linear_rgb(0.0, 1.0, 0.0))
+                });
+            }
             lines.push(move |gizmos: &mut Gizmos| {
                 let vector = Vec3::from(direction) * (hit.distance + 2.0);
                 gizmos.ray(start, vector, Color::linear_rgb(1.0, 0.0, 0.0))

@@ -8,10 +8,16 @@ use bevy_trenchbroom::prelude::*;
 #[reflect(Component)]
 struct Target;
 
+#[point_class]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
+#[reflect(Component)]
+struct TargetSpawner;
+
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Target>();
+    app.register_type::<TargetSpawner>();
     app.add_observer(setup_target);
-    app.add_systems(Update, handle_click);
+    app.add_systems(Update, (handle_click, spawn_target));
 }
 
 fn setup_target(
@@ -26,7 +32,9 @@ fn setup_target(
         Mesh3d(mesh_assets.add(Sphere::new(1.0))),
         MeshMaterial3d(materials.add(StandardMaterial::default())),
         Collider::sphere(1.0),
-        RigidBody::Static,
+        RigidBody::Dynamic,
+        Restitution::new(0.5),
+        LinearDamping(0.3),
     ));
 }
 
@@ -35,6 +43,7 @@ fn handle_click(
     origin: Single<&Transform, With<Camera3d>>,
     spatial_query: SpatialQuery,
     targets: Query<&Target>,
+    mut commands: Commands,
     mut lines: ResMut<DebugLines>,
 ) {
     if mouse.just_pressed(MouseButton::Left) {
@@ -62,6 +71,7 @@ fn handle_click(
                     let vector = Vec3::from(direction) * (hit.distance + 2.0);
                     gizmos.ray(start, vector, Color::linear_rgb(0.0, 1.0, 0.0))
                 });
+                commands.entity(hit.entity).despawn();
             }
             lines.push(move |gizmos: &mut Gizmos| {
                 let vector = Vec3::from(direction) * (hit.distance + 2.0);
@@ -70,6 +80,18 @@ fn handle_click(
         } else {
             let vector = Vec3::from(direction) * max_distance;
             lines.push(move |gizmos: &mut Gizmos| gizmos.ray(start, vector, Color::WHITE));
+        }
+    }
+}
+
+fn spawn_target(
+    mut commands: Commands,
+    targets: Query<&Target>,
+    spawners: Query<&Transform, With<TargetSpawner>>,
+) {
+    if targets.is_empty() {
+        for spawner in spawners.iter() {
+            commands.spawn((Target, *spawner));
         }
     }
 }

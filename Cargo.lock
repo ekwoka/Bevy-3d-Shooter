@@ -353,6 +353,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "avian_bullet_trajectory"
+version = "0.1.0"
+dependencies = [
+ "avian3d",
+ "bevy",
+]
+
+[[package]]
 name = "avian_derive"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -433,6 +441,7 @@ name = "bevy_3d"
 version = "0.1.0"
 dependencies = [
  "avian3d",
+ "avian_bullet_trajectory",
  "avian_pickup",
  "bevy",
  "bevy-tnua",

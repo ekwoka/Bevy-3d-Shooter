@@ -1,5 +1,5 @@
-use super::bullet_trajectory::{BulletPhysicsConfig, BulletTrajectory};
 use super::debug::DebugLines;
+use avian_bullet_trajectory::{BulletPhysicsConfig, BulletTrajectory};
 use avian3d::prelude::*;
 use bevy::prelude::*;
 use bevy_trenchbroom::prelude::*;

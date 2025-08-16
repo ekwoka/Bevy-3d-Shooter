@@ -5,6 +5,7 @@
 
 use bevy::prelude::*;
 
+pub mod bullet_trajectory;
 pub mod debug;
 pub mod level;
 mod movement;

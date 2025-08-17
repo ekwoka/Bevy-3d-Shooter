@@ -9,7 +9,9 @@ use bevy_trenchbroom::prelude::*;
 #[reflect(Component)]
 struct Target;
 
-#[point_class]
+#[point_class(
+    size(-64 -64 -64, 64 64 64)
+)]
 #[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
 #[reflect(Component)]
 struct TargetSpawner;

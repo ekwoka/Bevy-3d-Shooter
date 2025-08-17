@@ -1,8 +1,6 @@
 //! Player-specific behavior.
 
-use std::f32::consts::PI;
-
-use bevy::prelude::*;
+use bevy::{prelude::*, render::view::NoFrustumCulling};
 
 use bevy_enhanced_input::prelude::*;
 use bevy_tnua::prelude::TnuaController;
@@ -11,10 +9,12 @@ use bevy_trenchbroom::prelude::*;
 use avian3d::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<Player>();
+    app.register_type::<Player>()
+        .register_type::<WeaponSpawner>();
 
-    app.add_observer(setup_player);
-    app.add_observer(handled_player_looking);
+    app.add_observer(setup_player)
+        .add_observer(handled_player_looking)
+        .add_observer(setup_weapon_spawner);
 
     app.add_systems(Update, sync_player_camera);
 }
@@ -49,6 +49,24 @@ fn setup_player(
                 NoFrustumCulling
             )]
         )],
+    ));
+}
+
+#[point_class(model({ path: "models/fnf2000.glb" }), base(Transform))]
+#[reflect(Component)]
+struct WeaponSpawner;
+
+fn setup_weapon_spawner(
+    trigger: Trigger<OnAdd, WeaponSpawner>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    tracing::info!("Setting Up Spawned Weaponer Spawner");
+    commands.entity(trigger.target()).insert((
+        Name::new("WeaponSpawner"),
+        RigidBody::Dynamic,
+        Collider::cuboid(0.08, 0.2, 0.6),
+        SceneRoot(asset_server.load("models/fnf2000.glb#Scene0")),
     ));
 }
 

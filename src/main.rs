@@ -64,7 +64,9 @@ impl Plugin for AppPlugin {
                             .convex_collider()
                             .smooth_by_default_angle()
                     })
-                    .texture_sampler(texture_sampler()),
+                    .scale(64.0)
+                    .texture_sampler(texture_sampler())
+                    .entity_scale_expression("{{ scale == undefined -> 12000, scale }}"),
             ),
         ));
 

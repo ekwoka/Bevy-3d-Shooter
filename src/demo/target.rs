@@ -5,14 +5,11 @@ use bevy::prelude::*;
 use bevy_trenchbroom::prelude::*;
 
 #[point_class]
-#[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
+#[derive(Debug, Clone, Copy)]
 #[reflect(Component)]
 struct Target;
 
-#[point_class(
-    size(-64 -64 -64, 64 64 64)
-)]
-#[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
+#[point_class(model({ path: "models/target.gltf", scale: 75 }), base(Transform))]
 #[reflect(Component)]
 struct TargetSpawner;
 
@@ -26,18 +23,14 @@ pub(super) fn plugin(app: &mut App) {
 fn setup_target(
     trigger: Trigger<OnAdd, Target>,
     mut commands: Commands,
-    mut mesh_assets: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
     let entity = trigger.target();
     tracing::info!(?entity, "Setting Up Spawned Target");
     commands.entity(entity).insert((
-        Mesh3d(mesh_assets.add(Sphere::new(1.0))),
-        MeshMaterial3d(materials.add(StandardMaterial::default())),
-        Collider::sphere(1.0),
-        RigidBody::Dynamic,
-        Restitution::new(0.5),
-        LinearDamping(0.3),
+        RigidBody::Static,
+        Collider::cuboid(1.0, 1.0, 0.6),
+        SceneRoot(asset_server.load("models/target.gltf#Scene0")),
     ));
 }
 

@@ -148,21 +148,25 @@
 {
 "classname" "target_spawner"
 "origin" "632 -8 72"
+"angles" "0 220 0"
 }
 // entity 5
 {
 "classname" "target_spawner"
 "origin" "184 219 84"
+"angles" "0 270 0"
 }
 // entity 6
 {
 "classname" "target_spawner"
 "origin" "169 169 200"
+"angles" "0 270 0"
 }
 // entity 7
 {
 "classname" "target_spawner"
 "origin" "-440 56 72"
+"angles" "0 320 0"
 }
 // entity 8
 {
@@ -173,6 +177,7 @@
 {
 "classname" "target_spawner"
 "origin" "504 -408 72"
+"angles" "0 180 0"
 }
 // entity 10
 {

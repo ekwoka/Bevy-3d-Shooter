@@ -35,17 +35,18 @@ fn setup_player(
         Name::new("PlayerRoot"),
         super::movement::DefaultInputContext,
         RigidBody::Dynamic,
-        Collider::sphere(0.5),
+        Collider::sphere(1.0),
         TnuaController::default(),
         LockedAxes::ROTATION_LOCKED,
         children![(
             Name::new("PlayerView"),
             PlayerView,
-            Transform::from_xyz(0.0, 0.0, 0.0),
+            Transform::from_xyz(0.0, 0.7, 0.0),
             children![(
                 Name::new("FNF2000"),
                 SceneRoot(asset_server.load("models/fnf2000.glb#Scene0")),
-                Transform::from_xyz(0.15, -0.35, -1.0)
+                Transform::from_xyz(0.08, -0.12, -0.3),
+                NoFrustumCulling
             )]
         )],
     ));
@@ -85,7 +86,6 @@ fn sync_player_camera(
 
     player_view: Single<&Transform, (With<PlayerView>, Without<Camera3d>, Without<Player>)>,
 ) {
-    camera.translation = player_root.translation;
-    camera.rotation = player_view.rotation;
-    camera.rotate_y(PI);
+    camera.translation = player_root.translation + player_view.translation;
+    camera.rotation = player_root.rotation * player_view.rotation;
 }

@@ -18,6 +18,7 @@ fn apply_movement(
     transform: Single<&Transform, With<Camera3d>>,
     move_action: Single<&Action<Move>, Changed<Action<Move>>>,
     jump_action: Single<&Action<Jump>, Changed<Action<Jump>>>,
+    sprint_action: Single<&Action<Sprint>, Changed<Action<Sprint>>>,
 ) {
     let yaw = transform.rotation.to_euler(EulerRot::YXZ).0;
     let yaw_quat = Quat::from_axis_angle(Vec3::Y, yaw);
@@ -25,8 +26,12 @@ fn apply_movement(
         info!("Jumping: {:?}", ***jump_action);
     }
 
+    if ***sprint_action {
+        info!("Sprinting: {:?}", ***sprint_action);
+    }
+
     controller.basis(TnuaBuiltinWalk {
-        desired_velocity: yaw_quat * ***move_action,
+        desired_velocity: yaw_quat * ***move_action * if ***sprint_action { 24.0 } else { 12.0 },
         float_height: 1.05,
         max_slope: TAU / 8.0,
         ..default()
@@ -52,32 +57,41 @@ pub(super) struct Look;
 #[action_output(bool)]
 pub(super) struct Jump;
 
+#[derive(Debug, InputAction)]
+#[action_output(bool)]
+pub(super) struct Sprint;
+
 #[derive(Component)]
 pub(super) struct DefaultInputContext;
 
 impl DefaultInputContext {
     fn bindings() -> impl Bundle {
         actions!(
-            DefaultInputContext[(
-                Action::<Move>::new(),
-                DeadZone::default(),
-                SmoothNudge::default(),
-                Bindings::spawn((
-                    Cardinal::wasd_keys(),
-                    Axial::left_stick()
-                )),
-                Negate::y(),
-                SwizzleAxis::XZY,
-                Scale::splat(12.0)
-            ),
-            (
-                Action::<Look>::new(),
-                Bindings::spawn(Spawn((Binding::mouse_motion(), Negate::all(), SwizzleAxis::YXZ)))
-            ),
-            (
-                Action::<Jump>::new(),
-                bindings![KeyCode::Space]
-            )]
+            DefaultInputContext[
+                (
+                    Action::<Move>::new(),
+                    DeadZone::default(),
+                    SmoothNudge::default(),
+                    Bindings::spawn((
+                        Cardinal::wasd_keys(),
+                        Axial::left_stick()
+                    )),
+                    Negate::y(),
+                    SwizzleAxis::XZY
+                ),
+                (
+                    Action::<Look>::new(),
+                    Bindings::spawn(Spawn((Binding::mouse_motion(), Negate::all(), SwizzleAxis::YXZ)))
+                ),
+                (
+                    Action::<Jump>::new(),
+                    bindings![KeyCode::Space]
+                ),
+                (
+                    Action::<Sprint>::new(),
+                    bindings![KeyCode::ShiftLeft]
+                )
+            ]
         )
     }
 }

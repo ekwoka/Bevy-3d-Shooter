@@ -17,7 +17,7 @@ bevy = { version = "0.16.1", features = [
     # otherwise we only render the view model and the skybox.
     "bevy_ui_debug",
 ] }
-bevy_enhanced_input = "0.16.0"
+bevy_enhanced_input = "0.17.0"
 
 # Keep this in sync with Bevy
 rand = "0.8"

@@ -1,6 +1,6 @@
 //! Player-specific behavior.
 
-use bevy::{prelude::*, render::view::NoFrustumCulling};
+use bevy::prelude::*;
 
 use bevy_enhanced_input::prelude::*;
 use bevy_tnua::prelude::TnuaController;
@@ -25,15 +25,12 @@ pub fn _player() -> impl Bundle {
     Player
 }
 
-fn setup_player(
-    trigger: Trigger<OnAdd, Player>,
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
+fn setup_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
     tracing::info!("Setting Up Spawned Player");
     commands.entity(trigger.target()).insert((
         Name::new("PlayerRoot"),
         super::movement::DefaultInputContext,
+        super::target::WeaponContext,
         RigidBody::Dynamic,
         Collider::sphere(1.0),
         TnuaController::default(),
@@ -41,20 +38,14 @@ fn setup_player(
         children![(
             Name::new("PlayerView"),
             PlayerView,
-            Transform::from_xyz(0.0, 0.7, 0.0),
-            children![(
-                Name::new("FNF2000"),
-                SceneRoot(asset_server.load("models/fnf2000.glb#Scene0")),
-                Transform::from_xyz(0.08, -0.12, -0.3),
-                NoFrustumCulling
-            )]
+            Transform::from_xyz(0.0, 0.7, 0.0)
         )],
     ));
 }
 
 #[point_class(model({ path: "models/fnf2000.glb" }), base(Transform))]
 #[reflect(Component)]
-struct WeaponSpawner;
+pub struct WeaponSpawner;
 
 fn setup_weapon_spawner(
     trigger: Trigger<OnAdd, WeaponSpawner>,
@@ -73,11 +64,11 @@ fn setup_weapon_spawner(
 #[point_class]
 #[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
 #[reflect(Component)]
-struct Player;
+pub struct Player;
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
 #[reflect(Component)]
-struct PlayerView;
+pub struct PlayerView;
 
 fn handled_player_looking(
     trigger: Trigger<Fired<super::movement::Look>>,

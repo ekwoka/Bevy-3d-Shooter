@@ -1,7 +1,8 @@
 use super::debug::DebugLines;
 use avian_bullet_trajectory::{BulletPhysicsConfig, BulletTrajectory};
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, render::view::NoFrustumCulling};
+use bevy_enhanced_input::prelude::*;
 use bevy_trenchbroom::prelude::*;
 
 #[point_class]
@@ -18,6 +19,10 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<TargetSpawner>();
     app.add_observer(setup_target);
     app.add_systems(Update, (handle_click, spawn_target));
+    app.add_input_context::<WeaponContext>();
+    app.add_observer(apply_weapon_binding);
+    app.add_observer(remove_weapon_binding);
+    app.add_observer(pickup_weapon);
 }
 
 fn setup_target(
@@ -172,5 +177,83 @@ fn spawn_target(
         for spawner in spawners.iter() {
             commands.spawn((Target, *spawner));
         }
+    }
+}
+
+#[derive(Debug, InputAction)]
+#[action_output(bool)]
+pub(super) struct Pickup;
+
+#[derive(Component)]
+pub(super) struct WeaponContext;
+
+impl WeaponContext {
+    fn bindings() -> impl Bundle {
+        actions!(
+            WeaponContext[(
+                Action::<Pickup>::new(),
+                Press::new(1.0),
+                bindings![KeyCode::KeyF]
+            )]
+        )
+    }
+}
+
+fn apply_weapon_binding(trigger: Trigger<OnAdd, WeaponContext>, mut commands: Commands) {
+    info!("Applying weapon binding");
+    commands
+        .entity(trigger.target())
+        .insert(WeaponContext::bindings());
+}
+
+fn remove_weapon_binding(
+    trigger: Trigger<OnRemove, WeaponContext>,
+    mut commands: Commands,
+    mut actions: Query<&mut Actions<WeaponContext>>,
+) {
+    let owner = trigger.target();
+    let actions = actions.get_mut(owner).unwrap();
+    actions.into_iter().for_each(|entity| {
+        info!(?entity, "Removing Entity");
+        commands.entity(entity).try_despawn();
+    });
+}
+
+fn pickup_weapon(
+    _trigger: Trigger<Fired<Pickup>>,
+    mut commands: Commands,
+    mut lines: ResMut<DebugLines>,
+    spatial_query: SpatialQuery,
+    asset_server: Res<AssetServer>,
+    weapons: Query<Entity, With<super::player::WeaponSpawner>>,
+    player: Single<&Transform, With<super::player::Player>>,
+    player_view: Single<Entity, With<super::player::PlayerView>>,
+) {
+    info!("Picking up weapon");
+    let location = player.translation;
+    if let Some(weapon) = spatial_query
+        .shape_intersections(
+            &Collider::sphere(2.0),
+            location,
+            Quat::default(),
+            &SpatialQueryFilter::default(),
+        )
+        .iter()
+        .filter_map(|entity| weapons.get(*entity).ok()).next()
+    {
+        info!(?weapon, "Weapon Found");
+        lines.push(move |gizmos| {
+            gizmos.sphere(location, 2.0, Color::linear_rgb(0.0, 1.0, 0.0));
+        });
+        commands.entity(*player_view).insert(children![(
+            Name::new("FNF2000"),
+            SceneRoot(asset_server.load("models/fnf2000.glb#Scene0")),
+            Transform::from_xyz(0.08, -0.12, -0.3),
+            NoFrustumCulling
+        )]);
+    } else {
+        lines.push(move |gizmos| {
+            gizmos.sphere(location, 2.0, Color::WHITE);
+        });
     }
 }

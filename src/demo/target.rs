@@ -1,5 +1,5 @@
 use super::debug::DebugLines;
-use avian_bullet_trajectory::{BulletPhysicsConfig, BulletTrajectory};
+use avian_bullet_trajectory::BulletTrajectory;
 use avian3d::prelude::*;
 use bevy::{prelude::*, render::view::NoFrustumCulling};
 use bevy_enhanced_input::prelude::*;
@@ -44,6 +44,7 @@ fn handle_click(
     origin: Single<&Transform, With<Camera3d>>,
     spatial_query: SpatialQuery,
     targets: Query<&Target>,
+    weapon: Single<&super::player::WeaponType>,
     mut commands: Commands,
     mut lines: ResMut<DebugLines>,
 ) {
@@ -54,13 +55,11 @@ fn handle_click(
         let start = origin.translation + origin.forward() * 2.0;
         let direction = origin.forward();
 
-        // Bullet parameters (9mm example)
-        let muzzle_velocity = 900.0; // m/s for 9mm
-        let initial_velocity = direction * muzzle_velocity;
+        let initial_velocity = direction * weapon.muzzle_velocity();
         let bullet_mass = 0.0075; // 7.5 grams for 9mm
 
         // Use realistic physics config for 9mm
-        let config = BulletPhysicsConfig::caliber_9mm();
+        let config = weapon.ballistics();
         let filter = SpatialQueryFilter::default();
 
         info!(
@@ -225,7 +224,8 @@ fn pickup_weapon(
     mut lines: ResMut<DebugLines>,
     spatial_query: SpatialQuery,
     asset_server: Res<AssetServer>,
-    weapons: Query<Entity, With<super::player::WeaponSpawner>>,
+    weapons: Query<&super::player::WeaponSpawner>,
+    existing_weapons: Query<Entity, With<super::player::WeaponType>>,
     player: Single<&Transform, With<super::player::Player>>,
     player_view: Single<Entity, With<super::player::PlayerView>>,
 ) {
@@ -239,17 +239,22 @@ fn pickup_weapon(
             &SpatialQueryFilter::default(),
         )
         .iter()
-        .filter_map(|entity| weapons.get(*entity).ok()).next()
+        .filter_map(|entity| weapons.get(*entity).map(|weapon| weapon.weapon).ok())
+        .next()
     {
-        info!(?weapon, "Weapon Found");
+        info!(weapon = weapon.name(), "Weapon Found");
         lines.push(move |gizmos| {
             gizmos.sphere(location, 2.0, Color::linear_rgb(0.0, 1.0, 0.0));
         });
+        existing_weapons.iter().for_each(|entity| {
+            commands.entity(entity).try_despawn();
+        });
         commands.entity(*player_view).insert(children![(
-            Name::new("FNF2000"),
-            SceneRoot(asset_server.load("models/fnf2000.glb#Scene0")),
+            Name::new(weapon.name().to_string()),
+            SceneRoot(asset_server.load(weapon.model())),
             Transform::from_xyz(0.08, -0.12, -0.3),
-            NoFrustumCulling
+            NoFrustumCulling,
+            weapon
         )]);
     } else {
         lines.push(move |gizmos| {

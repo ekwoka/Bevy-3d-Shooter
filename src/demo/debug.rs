@@ -4,7 +4,6 @@ use bevy::prelude::*;
 use iyes_perf_ui::{PerfUiPlugin, prelude::*};
 
 pub(super) fn plugin(app: &mut App) {
-    #[cfg(debug_assertions)]
     app.add_systems(Update, draw_debug_lines)
         .add_plugins((
             bevy::diagnostic::FrameTimeDiagnosticsPlugin::default(),

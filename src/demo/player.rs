@@ -6,6 +6,7 @@ use bevy_enhanced_input::prelude::*;
 use bevy_tnua::prelude::TnuaController;
 use bevy_trenchbroom::prelude::*;
 
+use avian_bullet_trajectory::BulletPhysicsConfig;
 use avian3d::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -44,21 +45,65 @@ fn setup_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
 }
 
 #[point_class(model({ path: "models/fnf2000.glb" }), base(Transform))]
+#[derive(Default)]
 #[reflect(Component)]
-pub struct WeaponSpawner;
+pub struct WeaponSpawner {
+    pub weapon: WeaponType,
+}
+
+#[derive(Component, FgdType, Default, Reflect, Clone, Copy)]
+#[reflect(Component)]
+pub enum WeaponType {
+    #[default]
+    Glock,
+    FNF2000,
+}
+
+impl WeaponType {
+    pub fn name(&self) -> &str {
+        match self {
+            WeaponType::Glock => "Glock",
+            WeaponType::FNF2000 => "FN F2000",
+        }
+    }
+
+    pub fn model(&self) -> &str {
+        match self {
+            WeaponType::Glock => "models/glock.glb#Scene0",
+            WeaponType::FNF2000 => "models/fnf2000.glb#Scene0",
+        }
+    }
+
+    pub fn ballistics(&self) -> BulletPhysicsConfig {
+        match self {
+            WeaponType::Glock => BulletPhysicsConfig::caliber_9mm(),
+            WeaponType::FNF2000 => BulletPhysicsConfig::caliber_556(),
+        }
+    }
+
+    pub fn muzzle_velocity(&self) -> f32 {
+        match self {
+            WeaponType::Glock => 375.0,
+            WeaponType::FNF2000 => 900.0,
+        }
+    }
+}
 
 fn setup_weapon_spawner(
     trigger: Trigger<OnAdd, WeaponSpawner>,
     mut commands: Commands,
+    spawner: Query<&WeaponSpawner>,
     asset_server: Res<AssetServer>,
 ) {
     tracing::info!("Setting Up Spawned Weaponer Spawner");
-    commands.entity(trigger.target()).insert((
-        Name::new("WeaponSpawner"),
-        RigidBody::Dynamic,
-        Collider::cuboid(0.08, 0.2, 0.6),
-        SceneRoot(asset_server.load("models/fnf2000.glb#Scene0")),
-    ));
+    if let Ok(spawner) = spawner.get(trigger.target()) {
+        commands.entity(trigger.target()).insert((
+            Name::new("WeaponSpawner"),
+            RigidBody::Dynamic,
+            Collider::cuboid(0.08, 0.2, 0.6),
+            SceneRoot(asset_server.load(spawner.weapon.model())),
+        ));
+    }
 }
 
 #[point_class]

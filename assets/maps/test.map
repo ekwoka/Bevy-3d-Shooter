@@ -195,6 +195,7 @@
 "origin" "80 1807 66"
 "angle" "0"
 "angles" "0 0 -90"
+"weapon" "Glock"
 }
 // entity 5
 {
@@ -261,4 +262,12 @@
 "classname" "target_spawner"
 "origin" "568 13080 120"
 "angles" "0 270 0"
+}
+// entity 16
+{
+"classname" "weapon_spawner"
+"origin" "128 1807 66"
+"angle" "0"
+"angles" "0 0 -90"
+"weapon" "FNF2000"
 }

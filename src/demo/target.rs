@@ -50,7 +50,7 @@ fn handle_click(
         let direction = origin.forward();
 
         // Bullet parameters (9mm example)
-        let muzzle_velocity = 20.0; // m/s for 9mm
+        let muzzle_velocity = 900.0; // m/s for 9mm
         let initial_velocity = direction * muzzle_velocity;
         let bullet_mass = 0.0075; // 7.5 grams for 9mm
 
@@ -128,7 +128,7 @@ fn handle_click(
 
         let start = origin.translation + origin.forward() * 2.0;
         let direction = origin.forward();
-        let initial_velocity = direction * 20.0; // Faster for demo
+        let initial_velocity = direction * 900.0; // Faster for demo
         let filter = SpatialQueryFilter::default();
 
         let trajectory = spatial_query.simulate_simple_trajectory(

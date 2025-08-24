@@ -47,6 +47,7 @@ bevy_trenchbroom = { version = "0.9.3", features = ["avian"] }
 bevy_simple_subsecond_system = { version = "0.2.0", git = "https://github.com/TheBevyFlock/bevy_simple_subsecond_system" }
 bevy_gizmos = "0.16.1"
 iyes_perf_ui = "0.5.0"
+bevy_ui_anchor = "0.9.0"
 
 # Our Packages
 avian_bullet_trajectory = { path = "avian_bullet_trajectory" }
@@ -87,6 +88,8 @@ bevy_trenchbroom.workspace = true
 bevy_simple_subsecond_system = { workspace = true, optional = true }
 bevy_gizmos.workspace = true
 iyes_perf_ui.workspace = true
+bevy_ui_anchor.workspace = true
+
 avian_bullet_trajectory.workspace = true
 
 # Your web builds will start failing if you add a dependency that pulls in `getrandom` v0.3+.

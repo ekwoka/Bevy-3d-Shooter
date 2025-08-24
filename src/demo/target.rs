@@ -1,9 +1,14 @@
+use crate::theme::widget;
+
 use super::debug::DebugLines;
 use avian_bullet_trajectory::BulletTrajectory;
 use avian3d::prelude::*;
 use bevy::{prelude::*, render::view::NoFrustumCulling};
 use bevy_enhanced_input::prelude::*;
 use bevy_trenchbroom::prelude::*;
+use bevy_ui_anchor::{
+    AnchorPoint, AnchorUiConfig, AnchorUiNode, AnchoredUiNodes, HorizontalAnchor, VerticalAnchor,
+};
 
 #[point_class]
 #[derive(Debug, Clone, Copy)]
@@ -23,6 +28,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_observer(apply_weapon_binding);
     app.add_observer(remove_weapon_binding);
     app.add_observer(pickup_weapon);
+    app.add_systems(Update, update_target_distances);
 }
 
 fn setup_target(
@@ -36,6 +42,18 @@ fn setup_target(
         RigidBody::Static,
         Collider::cuboid(1.0, 1.0, 0.6),
         SceneRoot(asset_server.load("models/target.gltf#Scene0")),
+        AnchoredUiNodes::spawn_one((
+            AnchorUiConfig {
+                anchorpoint: AnchorPoint {
+                    vertical: VerticalAnchor::Bottom,
+                    horizontal: HorizontalAnchor::Mid,
+                },
+                offset: Some(Vec3::new(0.0, 0.5, 0.0)),
+                ..default()
+            },
+            widget::label("Target"),
+            Visibility::Hidden,
+        )),
     ));
 }
 
@@ -260,5 +278,51 @@ fn pickup_weapon(
         lines.push(move |gizmos| {
             gizmos.sphere(location, 2.0, Color::WHITE);
         });
+    }
+}
+
+fn update_target_distances(
+    origin: Single<&Transform, With<Camera3d>>,
+    spatial_query: SpatialQuery,
+    targets: Query<&AnchoredUiNodes, With<Target>>,
+    mut ui_nodes: Query<(&mut Text, &mut Visibility), With<AnchorUiNode>>,
+) {
+    let start = origin.translation + origin.forward() * 2.0;
+    let direction = origin.forward();
+    let mut target: Option<ShapeHitData> = None;
+    spatial_query.shape_hits_callback(
+        &Collider::sphere(2.0),
+        start,
+        Quat::default(),
+        direction,
+        &ShapeCastConfig::from_max_distance(500.0),
+        &SpatialQueryFilter::default(),
+        |hit| {
+            info!("Hit Entity");
+            if targets.contains(hit.entity) {
+                target.replace(hit);
+                info!("Hit Target");
+                false
+            } else {
+                true
+            }
+        },
+    );
+    for (_, mut visibility) in ui_nodes.iter_mut() {
+        *visibility = Visibility::Hidden;
+    }
+
+    if let Some((anchored_nodes, distance)) = target.and_then(|hit| {
+        targets
+            .get(hit.entity)
+            .ok()
+            .map(|anchored_nodes| (anchored_nodes, hit.distance))
+    }) {
+        for ui_node in anchored_nodes.iter() {
+            if let Ok((mut text, mut visibility)) = ui_nodes.get_mut(ui_node) {
+                **text = format!("{:.1}m", distance);
+                *visibility = Visibility::Visible;
+            }
+        }
     }
 }

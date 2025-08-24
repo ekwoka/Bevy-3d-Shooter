@@ -53,6 +53,7 @@ impl Plugin for AppPlugin {
                 .set(ImagePlugin {
                     default_sampler: default_image_sampler_descriptor(),
                 }),
+            bevy_ui_anchor::AnchorUiPlugin::<UICamera>::new(),
             EnhancedInputPlugin,
             PhysicsPlugins::default(),
             TnuaAvian3dPlugin::new(PhysicsSchedule),
@@ -126,11 +127,15 @@ struct Pause(pub bool);
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 struct PausableSystems;
 
+#[derive(Component)]
+pub struct UICamera;
+
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Camera"),
         Camera3d::default(),
         Transform::default(),
+        UICamera,
     ));
 }
 

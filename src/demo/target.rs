@@ -296,7 +296,7 @@ fn update_target_distances(
     }) {
         for ui_node in anchored_nodes.iter() {
             if let Ok((mut text, mut visibility)) = ui_nodes.get_mut(ui_node) {
-                **text = format!("{:.1}m", distance);
+                **text = format!("{distance:.1}m");
                 *visibility = Visibility::Visible;
             }
         }

@@ -67,8 +67,6 @@ fn handle_click(
     mut lines: ResMut<DebugLines>,
 ) {
     if mouse.just_pressed(MouseButton::Left) {
-        info!("Left mouse button clicked - simulating bullet trajectory");
-
         // Bullet starts slightly in front of camera to avoid self-collision
         let start = origin.translation + origin.forward() * 2.0;
         let direction = origin.forward();
@@ -80,12 +78,6 @@ fn handle_click(
         let config = weapon.ballistics();
         let filter = SpatialQueryFilter::default();
 
-        info!(
-            "Simulating bullet from {:?} with velocity {:?} m/s",
-            start,
-            initial_velocity.length()
-        );
-
         // Simulate the bullet trajectory
         let trajectory = spatial_query.simulate_bullet_trajectory(
             start,
@@ -93,13 +85,6 @@ fn handle_click(
             bullet_mass,
             Some(config),
             &filter,
-        );
-
-        info!(
-            "Trajectory complete: distance={:.2}m, time={:.3}s, hit={:?}",
-            trajectory.distance,
-            trajectory.time_of_flight,
-            trajectory.hit_entity.is_some()
         );
 
         // Check if we hit a target
@@ -146,8 +131,6 @@ fn handle_click(
 
     // Right-click for simple trajectory without air resistance
     if mouse.just_pressed(MouseButton::Right) {
-        info!("Right mouse button clicked - simple ballistic trajectory");
-
         let start = origin.translation + origin.forward() * 2.0;
         let direction = origin.forward();
         let initial_velocity = direction * 900.0; // Faster for demo
@@ -158,11 +141,6 @@ fn handle_click(
             initial_velocity,
             None, // Use default gravity
             &filter,
-        );
-
-        info!(
-            "Simple trajectory: distance={:.2}m, time={:.3}s",
-            trajectory.distance, trajectory.time_of_flight
         );
 
         // Draw simple trajectory in cyan
@@ -298,10 +276,8 @@ fn update_target_distances(
         &ShapeCastConfig::from_max_distance(500.0),
         &SpatialQueryFilter::default(),
         |hit| {
-            info!("Hit Entity");
             if targets.contains(hit.entity) {
                 target.replace(hit);
-                info!("Hit Target");
                 false
             } else {
                 true

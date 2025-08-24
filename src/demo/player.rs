@@ -33,13 +33,13 @@ fn setup_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
         super::movement::DefaultInputContext,
         super::target::WeaponContext,
         RigidBody::Dynamic,
-        Collider::sphere(1.0),
+        Collider::capsule(0.29, 1.0),
         TnuaController::default(),
         LockedAxes::ROTATION_LOCKED,
         children![(
             Name::new("PlayerView"),
             PlayerView,
-            Transform::from_xyz(0.0, 0.7, 0.0)
+            Transform::from_xyz(0.0, 0.5, 0.0)
         )],
     ));
 }

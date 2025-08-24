@@ -32,8 +32,9 @@ fn apply_movement(
 
     controller.basis(TnuaBuiltinWalk {
         desired_velocity: yaw_quat * ***move_action * if ***sprint_action { 24.0 } else { 12.0 },
-        float_height: 1.05,
-        max_slope: TAU / 8.0,
+        float_height: 1.4,
+        max_slope: TAU / 5.0,
+        spring_strength: 2000.0,
         ..default()
     });
 

@@ -13,6 +13,7 @@ mod screens;
 mod theme;
 
 use avian3d::prelude::*;
+use bevy::pbr::DirectionalLightShadowMap;
 use bevy::{
     asset::AssetMetaCheck,
     image::{ImageAddressMode, ImageSampler, ImageSamplerDescriptor},
@@ -84,7 +85,7 @@ impl Plugin for AppPlugin {
             screens::plugin,
             theme::plugin,
         ));
-
+        app.insert_resource(DirectionalLightShadowMap { size: 4096 });
         // Order new `AppSystems` variants by adding them here:
         app.configure_sets(
             Update,

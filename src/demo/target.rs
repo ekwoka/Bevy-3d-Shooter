@@ -265,11 +265,11 @@ fn update_target_distances(
     targets: Query<&AnchoredUiNodes, With<Target>>,
     mut ui_nodes: Query<(&mut Text, &mut Visibility), With<AnchorUiNode>>,
 ) {
-    let start = origin.translation + origin.forward() * 2.0;
+    let start = origin.translation + origin.forward() * 4.0;
     let direction = origin.forward();
     let mut target: Option<ShapeHitData> = None;
     spatial_query.shape_hits_callback(
-        &Collider::sphere(2.0),
+        &Collider::sphere(1.0),
         start,
         Quat::default(),
         direction,
@@ -278,10 +278,8 @@ fn update_target_distances(
         |hit| {
             if targets.contains(hit.entity) {
                 target.replace(hit);
-                false
-            } else {
-                true
             }
+            false
         },
     );
     for (_, mut visibility) in ui_nodes.iter_mut() {

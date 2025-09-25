@@ -84,6 +84,8 @@ impl Plugin for AppPlugin {
             menus::plugin,
             screens::plugin,
             theme::plugin,
+            #[cfg(feature = "editor")]
+            egui_editor::plugin,
         ));
         app.insert_resource(DirectionalLightShadowMap { size: 4096 });
         // Order new `AppSystems` variants by adding them here:
@@ -137,6 +139,8 @@ fn spawn_camera(mut commands: Commands) {
         Camera3d::default(),
         Transform::default(),
         UICamera,
+        #[cfg(feature = "editor")]
+        egui_editor::MainView,
     ));
 }
 

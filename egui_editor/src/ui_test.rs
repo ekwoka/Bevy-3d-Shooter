@@ -1,0 +1,194 @@
+use bevy::{
+    prelude::*,
+    render::{camera::Viewport, view::RenderLayers},
+};
+
+use crate::infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
+
+pub fn plugin(app: &mut App) {
+    app.add_plugins(InfiniteGridPlugin)
+        .add_systems(Startup, setup_camera_system)
+        .add_systems(Startup, build_ui)
+        .add_systems(Update, update_viewport)
+        .add_observer(hover_menu_item)
+        .add_observer(unhover_menu_item);
+}
+
+#[derive(Component)]
+pub struct MainView;
+
+#[derive(Component)]
+pub struct UiView;
+
+#[derive(Component)]
+pub struct ViewPort;
+
+#[derive(Component)]
+pub struct MenuBar;
+
+#[derive(Component)]
+pub struct MenuButton;
+
+pub fn hover_menu_item(
+    trigger: Trigger<Pointer<Over>>,
+    mut menu_items: Query<&mut BackgroundColor, With<MenuButton>>,
+) {
+    if let Ok(mut color) = menu_items.get_mut(trigger.target()) {
+        *color = BackgroundColor::from(Color::linear_rgba(0.2, 0.2, 1.0, 0.50));
+    }
+}
+
+pub fn unhover_menu_item(
+    trigger: Trigger<Pointer<Out>>,
+    mut menu_items: Query<&mut BackgroundColor, With<MenuButton>>,
+) {
+    if let Ok(mut color) = menu_items.get_mut(trigger.target()) {
+        *color = BackgroundColor::DEFAULT;
+    }
+}
+
+pub fn build_ui(mut commands: Commands) {
+    commands.spawn((
+        Node {
+            padding: UiRect::all(Val::Px(1.)),
+            flex_grow: 0.0,
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            width: Val::Percent(100.),
+            height: Val::Percent(100.),
+            // Prevent children from expanding the height of this node.
+            min_height: Val::Px(0.),
+            ..default()
+        },
+        RenderLayers::layer(1),
+        children![
+            (
+                Node {
+                    padding: UiRect::all(Val::Px(4.)),
+                    flex_grow: 0.0,
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Row,
+                    column_gap: Val::Px(8.0),
+                    width: Val::Percent(100.),
+                    border: UiRect::bottom(Val::Px(1.0)),
+                    ..default()
+                },
+                MenuBar,
+                BorderColor(Color::linear_rgb(0.7, 0.7, 0.7)),
+                RenderLayers::layer(1),
+                children![
+                    menu_button("File"),
+                    menu_button("Edit"),
+                    menu_button("View"),
+                    menu_button("Help")
+                ]
+            ),
+            (
+                Node {
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Row,
+                    flex_grow: 1.0,
+                    flex_shrink: 1.0,
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(50.0),
+                    ..default()
+                },
+                children![
+                    (
+                        Node {
+                            padding: UiRect::all(Val::Px(1.)),
+                            flex_grow: 0.0,
+                            width: Val::Percent(50.0),
+                            ..default()
+                        },
+                        RenderLayers::layer(1),
+                        children![(Text::new("Hello, World!"), RenderLayers::layer(1))]
+                    ),
+                    (
+                        Node {
+                            flex_grow: 1.0,
+                            flex_shrink: 1.0,
+                            width: Val::Percent(50.0),
+                            height: Val::Percent(100.0),
+                            ..default()
+                        },
+                        RenderLayers::layer(1),
+                        ViewPort
+                    )
+                ]
+            ),
+            (
+                Node {
+                    padding: UiRect::all(Val::Px(1.)),
+                    flex_grow: 0.0,
+                    width: Val::Percent(100.0),
+                    ..default()
+                },
+                RenderLayers::layer(1),
+                children![(Text::new("Hi, Mom!"), RenderLayers::layer(1))]
+            )
+        ],
+    ));
+}
+
+fn menu_button(test: impl Into<String>) -> impl Bundle {
+    (
+        Node {
+            padding: UiRect::all(Val::Px(4.)),
+            ..default()
+        },
+        MenuButton,
+        BackgroundColor::DEFAULT,
+        BorderRadius::all(Val::Px(2.0)),
+        children![(
+            Text::new(test),
+            TextFont {
+                font_size: 12.0,
+                ..default()
+            },
+            TextColor::from(Color::linear_rgb(0.7, 0.7, 0.7))
+        )],
+    )
+}
+
+pub fn setup_camera_system(mut commands: Commands) {
+    commands.spawn((
+        Camera2d,
+        UiView,
+        RenderLayers::layer(1),
+        Camera {
+            order: 1,
+            ..default()
+        },
+    ));
+
+    commands.spawn((
+        InfiniteGrid,
+        InfiniteGridSettings {
+            x_axis_color: Color::WHITE,
+            z_axis_color: Color::WHITE,
+            major_line_color: Color::WHITE,
+            minor_line_color: Color::WHITE,
+            ..default()
+        },
+    ));
+}
+
+pub fn update_viewport(
+    view_target: Single<(&ComputedNode, &GlobalTransform), With<ViewPort>>,
+    mut camera: Single<&mut Camera, With<MainView>>,
+) {
+    let (viewport, transform) = *view_target;
+    let size = viewport.size();
+    if size.x == 0.0 || size.y == 0.0 {
+        return;
+    }
+    let left = transform.translation().x * 1.0;
+    let top = transform.translation().y * 1.0;
+    let pos = UVec2::new((left - size.x / 2.0) as u32, (top - size.y / 2.0) as u32);
+    camera.viewport = Some(Viewport {
+        physical_position: pos,
+        physical_size: UVec2::new(size.x as u32, size.y as u32),
+        ..default()
+    });
+}

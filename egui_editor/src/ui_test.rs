@@ -1,15 +1,20 @@
 use bevy::{
+    dev_tools::states::log_transitions,
     prelude::*,
     render::{camera::Viewport, view::RenderLayers},
 };
 
-use crate::infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
+use crate::{
+    EditorMode,
+    infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings},
+};
 
 pub fn plugin(app: &mut App) {
     app.add_plugins(InfiniteGridPlugin)
-        .add_systems(Startup, setup_camera_system)
-        .add_systems(Startup, build_ui)
-        .add_systems(Update, update_viewport)
+        .init_state::<EditorMode>()
+        .add_systems(Update, log_transitions::<EditorMode>)
+        .add_systems(OnEnter(EditorMode::Edit), (setup_camera_system, build_ui))
+        .add_systems(Update, update_viewport.run_if(in_state(EditorMode::Edit)))
         .add_observer(hover_menu_item)
         .add_observer(unhover_menu_item);
 }

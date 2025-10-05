@@ -93,7 +93,7 @@ iyes_perf_ui.workspace = true
 bevy_ui_anchor.workspace = true
 
 avian_bullet_trajectory.workspace = true
-egui_editor = { workspace = true, optional = true }
+egui_editor = { workspace = true, optional = true, features = ["avian"] }
 
 # Your web builds will start failing if you add a dependency that pulls in `getrandom` v0.3+.
 # To fix this, you should tell `getrandom` to use the `wasm_js` backend on Wasm.

@@ -9,6 +9,9 @@ use crate::{
     infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings},
 };
 
+#[cfg(feature = "avian")]
+use avian3d::schedule::{Physics, PhysicsTime};
+
 pub fn plugin(app: &mut App) {
     app.add_plugins(InfiniteGridPlugin)
         .init_state::<EditorMode>()
@@ -17,6 +20,23 @@ pub fn plugin(app: &mut App) {
         .add_systems(Update, update_viewport.run_if(in_state(EditorMode::Edit)))
         .add_observer(hover_menu_item)
         .add_observer(unhover_menu_item);
+    #[cfg(feature = "avian")]
+    {
+        app.add_systems(OnEnter(EditorMode::Edit), pause_physics);
+        app.add_systems(OnExit(EditorMode::Edit), resume_physics);
+    }
+}
+
+#[cfg(feature = "avian")]
+fn pause_physics(mut time: ResMut<Time<Physics>>) {
+    info!("Physics Paused");
+    time.pause();
+}
+
+#[cfg(feature = "avian")]
+fn resume_physics(mut time: ResMut<Time<Physics>>) {
+    info!("Physics Resumed");
+    time.unpause();
 }
 
 #[derive(Component)]

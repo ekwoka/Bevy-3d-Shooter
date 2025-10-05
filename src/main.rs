@@ -98,11 +98,9 @@ impl Plugin for AppPlugin {
             )
                 .chain(),
         );
-
         // Set up the `Pause` state.
         app.init_state::<Pause>();
         app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
-
         // Spawn the main camera.
         app.add_systems(Startup, spawn_camera);
     }

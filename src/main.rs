@@ -13,6 +13,7 @@ mod screens;
 mod theme;
 
 use avian3d::prelude::*;
+use bevy::gltf::GltfPlugin;
 use bevy::light::DirectionalLightShadowMap;
 use bevy::{
     asset::AssetMetaCheck,
@@ -53,6 +54,10 @@ impl Plugin for AppPlugin {
                 })
                 .set(ImagePlugin {
                     default_sampler: default_image_sampler_descriptor(),
+                })
+                .set(GltfPlugin {
+                    use_model_forward_direction: true,
+                    ..default()
                 }),
             bevy_ui_anchor::AnchorUiPlugin::<UICamera>::new(),
             EnhancedInputPlugin,

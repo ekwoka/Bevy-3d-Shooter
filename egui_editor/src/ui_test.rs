@@ -1,7 +1,9 @@
 use bevy::{
+    camera::{Viewport, visibility::RenderLayers},
     dev_tools::states::log_transitions,
+    math::Affine2,
     prelude::*,
-    render::{camera::Viewport, view::RenderLayers},
+    window::PrimaryWindow,
 };
 
 use crate::{
@@ -99,7 +101,7 @@ pub fn build_ui(mut commands: Commands) {
                     ..default()
                 },
                 MenuBar,
-                BorderColor(Color::linear_rgb(0.7, 0.7, 0.7)),
+                BorderColor::all(Color::linear_rgb(0.7, 0.7, 0.7)),
                 RenderLayers::layer(1),
                 children![
                     menu_button("File"),
@@ -200,19 +202,18 @@ pub fn setup_camera_system(mut commands: Commands) {
 }
 
 pub fn update_viewport(
-    view_target: Single<(&ComputedNode, &GlobalTransform), With<ViewPort>>,
+    view_target: Single<(&ComputedNode, &UiGlobalTransform), With<ViewPort>>,
     mut camera: Single<&mut Camera, With<MainView>>,
+    window: Single<&Window, With<PrimaryWindow>>,
 ) {
     let (viewport, transform) = *view_target;
     let size = viewport.size();
     if size.x == 0.0 || size.y == 0.0 {
         return;
     }
-    let left = transform.translation().x * 1.0;
-    let top = transform.translation().y * 1.0;
-    let pos = UVec2::new((left - size.x / 2.0) as u32, (top - size.y / 2.0) as u32);
+    let pos = Affine2::from(transform).translation - size * Vec2::new(0.5, 0.5);
     camera.viewport = Some(Viewport {
-        physical_position: pos,
+        physical_position: pos.as_uvec2(),
         physical_size: UVec2::new(size.x as u32, size.y as u32),
         ..default()
     });

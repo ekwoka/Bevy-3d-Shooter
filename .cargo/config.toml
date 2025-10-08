@@ -1,6 +1,6 @@
 [alias]
 make = ["bin", "cargo-make"]
-nextest = ["bin", "cargo-nextest"]
+nextest = ["bin", "cargo-nextest", "run"]
 remove = ["bin", "cargo-rm"]
 upgrade-local = ["bin", "cargo-upgrade"]
 watch = ["bin", "cargo-watch"]

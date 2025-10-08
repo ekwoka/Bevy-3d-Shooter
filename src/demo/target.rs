@@ -3,7 +3,7 @@ use crate::theme::widget;
 use super::debug::DebugLines;
 use avian_bullet_trajectory::BulletTrajectory;
 use avian3d::prelude::*;
-use bevy::{prelude::*, render::view::NoFrustumCulling};
+use bevy::{camera::visibility::NoFrustumCulling, prelude::*};
 use bevy_enhanced_input::prelude::*;
 use bevy_trenchbroom::prelude::*;
 use bevy_ui_anchor::{
@@ -31,12 +31,8 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, update_target_distances);
 }
 
-fn setup_target(
-    trigger: Trigger<OnAdd, Target>,
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
-    let entity = trigger.target();
+fn setup_target(event: On<Add, Target>, mut commands: Commands, asset_server: Res<AssetServer>) {
+    let entity = event.entity;
     tracing::info!(?entity, "Setting Up Spawned Target");
     commands.entity(entity).insert((
         RigidBody::Static,
@@ -187,26 +183,26 @@ impl WeaponContext {
         actions!(
             WeaponContext[(
                 Action::<Pickup>::new(),
-                Press::new(1.0),
+                bevy_enhanced_input::prelude::Press::new(1.0),
                 bindings![KeyCode::KeyF]
             )]
         )
     }
 }
 
-fn apply_weapon_binding(trigger: Trigger<OnAdd, WeaponContext>, mut commands: Commands) {
+fn apply_weapon_binding(event: On<Add, WeaponContext>, mut commands: Commands) {
     info!("Applying weapon binding");
     commands
-        .entity(trigger.target())
+        .entity(event.entity)
         .insert(WeaponContext::bindings());
 }
 
 fn remove_weapon_binding(
-    trigger: Trigger<OnRemove, WeaponContext>,
+    event: On<Remove, WeaponContext>,
     mut commands: Commands,
     mut actions: Query<&mut Actions<WeaponContext>>,
 ) {
-    let owner = trigger.target();
+    let owner = event.entity;
     let actions = actions.get_mut(owner).unwrap();
     actions.into_iter().for_each(|entity| {
         info!(?entity, "Removing Entity");
@@ -215,7 +211,7 @@ fn remove_weapon_binding(
 }
 
 fn pickup_weapon(
-    _trigger: Trigger<Fired<Pickup>>,
+    _trigger: On<Fire<Pickup>>,
     mut commands: Commands,
     mut lines: ResMut<DebugLines>,
     spatial_query: SpatialQuery,

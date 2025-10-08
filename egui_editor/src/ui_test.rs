@@ -55,19 +55,19 @@ pub struct MenuBar;
 pub struct MenuButton;
 
 pub fn hover_menu_item(
-    trigger: Trigger<Pointer<Over>>,
+    trigger: On<Pointer<Over>>,
     mut menu_items: Query<&mut BackgroundColor, With<MenuButton>>,
 ) {
-    if let Ok(mut color) = menu_items.get_mut(trigger.target()) {
+    if let Ok(mut color) = menu_items.get_mut(trigger.entity) {
         *color = BackgroundColor::from(Color::linear_rgba(0.2, 0.2, 1.0, 0.50));
     }
 }
 
 pub fn unhover_menu_item(
-    trigger: Trigger<Pointer<Out>>,
+    trigger: On<Pointer<Out>>,
     mut menu_items: Query<&mut BackgroundColor, With<MenuButton>>,
 ) {
-    if let Ok(mut color) = menu_items.get_mut(trigger.target()) {
+    if let Ok(mut color) = menu_items.get_mut(trigger.entity) {
         *color = BackgroundColor::DEFAULT;
     }
 }

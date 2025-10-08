@@ -2,7 +2,7 @@
 
 use bevy::{
     prelude::*,
-    window::{CursorGrabMode, PrimaryWindow},
+    window::{CursorGrabMode, CursorOptions, PrimaryWindow},
 };
 use bevy_trenchbroom::prelude::*;
 
@@ -39,15 +39,15 @@ impl FromWorld for LevelAssets {
 pub fn spawn_level(
     mut commands: Commands,
     level_assets: Res<LevelAssets>,
-    mut window: Single<&mut Window, With<PrimaryWindow>>,
+    mut cursor: Single<&mut CursorOptions, With<PrimaryWindow>>,
 ) {
-    window.cursor_options.visible = false;
-    window.cursor_options.grab_mode = CursorGrabMode::Locked;
+    cursor.visible = false;
+    cursor.grab_mode = CursorGrabMode::Locked;
     commands.spawn((
         Name::new("Level"),
         Level,
         SceneRoot(level_assets.level.clone()),
-        StateScoped(Screen::Gameplay),
+        DespawnOnExit(Screen::Gameplay),
     ));
 }
 
@@ -55,12 +55,12 @@ pub fn spawn_level(
 pub struct Ball;
 
 fn setup_sphere(
-    trigger: Trigger<OnAdd, Ball>,
+    event: On<Add, Ball>,
     mut commands: Commands,
     mut mesh_assets: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let entity = trigger.target();
+    let entity = event.entity;
     tracing::info!(?entity, "Setting Up Spawned Ball");
     commands.entity(entity).insert((
         Mesh3d(mesh_assets.add(Sphere::new(1.0))),

@@ -97,18 +97,18 @@ impl DefaultInputContext {
     }
 }
 
-fn apply_default_binding(trigger: Trigger<OnAdd, DefaultInputContext>, mut commands: Commands) {
+fn apply_default_binding(trigger: On<Add, DefaultInputContext>, mut commands: Commands) {
     commands
-        .entity(trigger.target())
+        .entity(trigger.entity)
         .insert(DefaultInputContext::bindings());
 }
 
 fn remove_default_binding(
-    trigger: Trigger<OnRemove, DefaultInputContext>,
+    trigger: On<Remove, DefaultInputContext>,
     mut commands: Commands,
     mut actions: Query<&mut Actions<DefaultInputContext>>,
 ) {
-    let owner = trigger.target();
+    let owner = trigger.entity;
     let actions = actions.get_mut(owner).unwrap();
     actions.into_iter().for_each(|entity| {
         info!(?entity, "Removing Entity");

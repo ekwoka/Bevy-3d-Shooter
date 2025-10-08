@@ -3,7 +3,7 @@
 use bevy::{
     input::common_conditions::input_just_pressed,
     prelude::*,
-    window::{CursorGrabMode, PrimaryWindow},
+    window::{CursorGrabMode, CursorOptions, PrimaryWindow},
 };
 
 use crate::{menus::Menu, screens::Screen, theme::widget};
@@ -16,13 +16,16 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_pause_menu(mut commands: Commands, mut window: Single<&mut Window, With<PrimaryWindow>>) {
-    window.cursor_options.visible = true;
-    window.cursor_options.grab_mode = CursorGrabMode::None;
+fn spawn_pause_menu(
+    mut commands: Commands,
+    mut cursor: Single<&mut CursorOptions, With<PrimaryWindow>>,
+) {
+    cursor.visible = true;
+    cursor.grab_mode = CursorGrabMode::None;
     commands.spawn((
         widget::ui_root("Pause Menu"),
         GlobalZIndex(2),
-        StateScoped(Menu::Pause),
+        DespawnOnExit(Menu::Pause),
         children![
             widget::header("Game paused"),
             widget::button("Continue", close_menu),
@@ -32,23 +35,23 @@ fn spawn_pause_menu(mut commands: Commands, mut window: Single<&mut Window, With
     ));
 }
 
-fn open_settings_menu(_: Trigger<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
+fn open_settings_menu(_: On<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(Menu::Settings);
 }
 
-fn close_menu(_: Trigger<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
+fn close_menu(_: On<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(Menu::None);
 }
 
-fn quit_to_title(_: Trigger<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
+fn quit_to_title(_: On<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
     next_screen.set(Screen::Title);
 }
 
 fn go_back(
     mut next_menu: ResMut<NextState<Menu>>,
-    mut window: Single<&mut Window, With<PrimaryWindow>>,
+    mut cursor: Single<&mut CursorOptions, With<PrimaryWindow>>,
 ) {
-    window.cursor_options.visible = false;
-    window.cursor_options.grab_mode = CursorGrabMode::Locked;
+    cursor.visible = false;
+    cursor.grab_mode = CursorGrabMode::Locked;
     next_menu.set(Menu::None);
 }

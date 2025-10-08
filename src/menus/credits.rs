@@ -22,7 +22,7 @@ fn spawn_credits_menu(mut commands: Commands) {
     commands.spawn((
         widget::ui_root("Credits Menu"),
         GlobalZIndex(2),
-        StateScoped(Menu::Credits),
+        DespawnOnExit(Menu::Credits),
         children![
             widget::header("Created by"),
             created_by(),
@@ -80,7 +80,7 @@ fn grid(content: Vec<[&'static str; 2]>) -> impl Bundle {
     )
 }
 
-fn go_back_on_click(_: Trigger<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
+fn go_back_on_click(_: On<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(Menu::Main);
 }
 
@@ -99,5 +99,5 @@ impl FromWorld for CreditsAssets {
 }
 
 fn start_credits_music(mut commands: Commands) {
-    commands.spawn((Name::new("Credits Music"), StateScoped(Menu::Credits)));
+    commands.spawn((Name::new("Credits Music"), DespawnOnExit(Menu::Credits)));
 }

@@ -1,40 +1,14 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
-use iyes_perf_ui::{PerfUiPlugin, prelude::*};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, draw_debug_lines)
-        .add_plugins((
-            bevy::diagnostic::FrameTimeDiagnosticsPlugin::default(),
-            bevy::diagnostic::EntityCountDiagnosticsPlugin,
-            PerfUiPlugin,
-        ))
-        .add_systems(Startup, add_perf_overlay);
+    app.add_systems(Update, draw_debug_lines).add_plugins((
+        bevy::diagnostic::FrameTimeDiagnosticsPlugin::default(),
+        bevy::diagnostic::EntityCountDiagnosticsPlugin::default(),
+    ));
 
     app.insert_resource(DebugLines::new());
-}
-
-fn add_perf_overlay(mut commands: Commands) {
-    commands.spawn((
-        PerfUiRoot::default(),
-        // when we have lots of entries, we have to group them
-        // into tuples, because of Bevy Rust syntax limitations
-        (
-            PerfUiEntryFPS::default(),
-            PerfUiEntryFPSWorst::default(),
-            PerfUiEntryFrameTime::default(),
-            PerfUiEntryFrameTimeWorst::default(),
-            PerfUiEntryFrameCount::default(),
-            PerfUiEntryEntityCount::default(),
-        ),
-        (
-            PerfUiEntryFixedTimeStep::default(),
-            PerfUiEntryFixedOverstep::default(),
-            PerfUiEntryRunningTime::default(),
-            PerfUiEntryClock::default(),
-        ),
-    ));
 }
 
 #[cfg_attr(not(debug_assertions), allow(dead_code))]
@@ -76,6 +50,6 @@ impl DebugLines {
     }
 
     pub fn clean(&mut self) {
-        self.0.retain(|(_, timer)| !timer.finished());
+        self.0.retain(|(_, timer)| !timer.is_finished());
     }
 }

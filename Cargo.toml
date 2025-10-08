@@ -7,7 +7,7 @@ edition = "2024"
 rust-version = "1.89"
 
 [workspace.dependencies]
-bevy = { version = "0.16", features = [
+bevy = { version = "0.17", features = [
     "jpeg",
     "tga",
     "ktx2",
@@ -17,7 +17,7 @@ bevy = { version = "0.16", features = [
     # otherwise we only render the view model and the skybox.
     "bevy_ui_debug",
 ] }
-bevy_enhanced_input = "0.18"
+bevy_enhanced_input = "0.19"
 
 # Keep this in sync with Bevy
 rand = "0.8"
@@ -34,20 +34,20 @@ tracing = { version = "0.1.41", features = [
 ] }
 
 # Physics
-avian3d = "0.3"
+avian3d = { git = "https://github.com/Jondolf/avian", branch = "main" }
 avian_pickup = "0.2"
 
 # Character Controller
-bevy-tnua = "0.25"
-bevy-tnua-avian3d = "0.6"
+bevy-tnua = { git = "https://github.com/janhohenheim/bevy-tnua", branch = "bevy-0.17.0-dev" }
+bevy-tnua-avian3d = { git = "https://github.com/janhohenheim/bevy-tnua", branch = "bevy-0.17.0-dev" }
 
 # Level editor
-bevy_trenchbroom = { version = "0.9.3", features = ["avian"] }
+bevy_trenchbroom = { git = "https://github.com/Noxmore/bevy_trenchbroom", branch = "bevy-0.17", features = ["avian"] }
 
 bevy_simple_subsecond_system = { version = "0.2.0", git = "https://github.com/TheBevyFlock/bevy_simple_subsecond_system" }
-bevy_gizmos = "0.16"
+bevy_gizmos = "0.17"
 iyes_perf_ui = "0.5.0"
-bevy_ui_anchor = "0.9.0"
+bevy_ui_anchor = "0.10.0"
 
 # Our Packages
 avian_bullet_trajectory = { path = "avian_bullet_trajectory" }

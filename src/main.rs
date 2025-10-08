@@ -13,7 +13,7 @@ mod screens;
 mod theme;
 
 use avian3d::prelude::*;
-use bevy::pbr::DirectionalLightShadowMap;
+use bevy::light::DirectionalLightShadowMap;
 use bevy::{
     asset::AssetMetaCheck,
     image::{ImageAddressMode, ImageSampler, ImageSamplerDescriptor},

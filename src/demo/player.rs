@@ -26,9 +26,9 @@ pub fn _player() -> impl Bundle {
     Player
 }
 
-fn setup_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
+fn setup_player(event: On<Add, Player>, mut commands: Commands) {
     tracing::info!("Setting Up Spawned Player");
-    commands.entity(trigger.target()).insert((
+    commands.entity(event.entity).insert((
         Name::new("PlayerRoot"),
         super::movement::DefaultInputContext,
         super::target::WeaponContext,
@@ -60,17 +60,17 @@ pub enum WeaponType {
 }
 
 impl WeaponType {
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> String {
         match self {
-            WeaponType::Glock => "Glock",
-            WeaponType::FNF2000 => "FN F2000",
+            WeaponType::Glock => "Glock".to_string(),
+            WeaponType::FNF2000 => "FN F2000".to_string(),
         }
     }
 
-    pub fn model(&self) -> &str {
+    pub fn model(&self) -> String {
         match self {
-            WeaponType::Glock => "models/glock.glb#Scene0",
-            WeaponType::FNF2000 => "models/fnf2000.glb#Scene0",
+            WeaponType::Glock => "models/glock.glb#Scene0".to_string(),
+            WeaponType::FNF2000 => "models/fnf2000.glb#Scene0".to_string(),
         }
     }
 
@@ -90,14 +90,14 @@ impl WeaponType {
 }
 
 fn setup_weapon_spawner(
-    trigger: Trigger<OnAdd, WeaponSpawner>,
+    event: On<Add, WeaponSpawner>,
     mut commands: Commands,
     spawner: Query<&WeaponSpawner>,
     asset_server: Res<AssetServer>,
 ) {
     tracing::info!("Setting Up Spawned Weaponer Spawner");
-    if let Ok(spawner) = spawner.get(trigger.target()) {
-        commands.entity(trigger.target()).insert((
+    if let Ok(spawner) = spawner.get(event.entity) {
+        commands.entity(event.entity).insert((
             Name::new("WeaponSpawner"),
             RigidBody::Dynamic,
             Collider::cuboid(0.08, 0.2, 0.6),
@@ -116,7 +116,7 @@ pub struct Player;
 pub struct PlayerView;
 
 fn handled_player_looking(
-    trigger: Trigger<Fired<super::movement::Look>>,
+    event: On<Fire<super::movement::Look>>,
     mut player_view: Single<&mut Transform, With<PlayerView>>,
     time: Res<Time>,
     window: Single<&Window, With<bevy::window::PrimaryWindow>>,
@@ -128,8 +128,8 @@ fn handled_player_looking(
     let delta = time.delta_secs() * sensitivity;
     let (mut yaw, mut pitch, _) = player_view.rotation.to_euler(EulerRot::YXZ);
     tracing::debug!(yaw = yaw, pitch = pitch, "Player is Looking Around");
-    yaw += trigger.value.y * delta;
-    pitch += trigger.value.x * delta;
+    yaw += event.value.y * delta;
+    pitch += event.value.x * delta;
     pitch = pitch.clamp(-1.57, 1.57);
     player_view.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, 0.0);
 }

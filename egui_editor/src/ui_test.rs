@@ -3,7 +3,6 @@ use bevy::{
     dev_tools::states::log_transitions,
     math::Affine2,
     prelude::*,
-    window::PrimaryWindow,
 };
 
 use crate::{
@@ -74,7 +73,19 @@ pub fn unhover_menu_item(
     }
 }
 
-pub fn build_ui(mut commands: Commands) {
+pub fn build_ui(mut commands: Commands, type_registry: Res<AppTypeRegistry>) {
+    let registry = type_registry.read();
+    let component_info = registry
+        .iter_with_data::<ReflectComponent>()
+        .map(|(registration, _)| {
+            registration
+                .type_info()
+                .ty()
+                .type_path_table()
+                .short_path()
+                .to_string()
+        })
+        .collect::<Vec<_>>();
     commands.spawn((
         Node {
             padding: UiRect::all(Val::Px(1.)),
@@ -129,7 +140,14 @@ pub fn build_ui(mut commands: Commands) {
                             ..default()
                         },
                         RenderLayers::layer(1),
-                        children![(Text::new("Hello, World!"), RenderLayers::layer(1))]
+                        children![(
+                            Text::new(component_info.join("\n")),
+                            RenderLayers::layer(1),
+                            TextFont {
+                                font_size: 12.0,
+                                ..default()
+                            }
+                        )]
                     ),
                     (
                         Node {
@@ -204,7 +222,6 @@ pub fn setup_camera_system(mut commands: Commands) {
 pub fn update_viewport(
     view_target: Single<(&ComputedNode, &UiGlobalTransform), With<ViewPort>>,
     mut camera: Single<&mut Camera, With<MainView>>,
-    window: Single<&Window, With<PrimaryWindow>>,
 ) {
     let (viewport, transform) = *view_target;
     let size = viewport.size();

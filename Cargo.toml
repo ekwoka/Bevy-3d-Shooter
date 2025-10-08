@@ -46,7 +46,6 @@ bevy_trenchbroom = { git = "https://github.com/Noxmore/bevy_trenchbroom", branch
 
 bevy_simple_subsecond_system = { version = "0.2.0", git = "https://github.com/TheBevyFlock/bevy_simple_subsecond_system" }
 bevy_gizmos = "0.17"
-iyes_perf_ui = "0.5.0"
 bevy_ui_anchor = "0.10.0"
 
 # Our Packages
@@ -89,7 +88,6 @@ bevy_trenchbroom.workspace = true
 
 bevy_simple_subsecond_system = { workspace = true, optional = true }
 bevy_gizmos.workspace = true
-iyes_perf_ui.workspace = true
 bevy_ui_anchor.workspace = true
 
 avian_bullet_trajectory.workspace = true

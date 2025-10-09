@@ -11,7 +11,7 @@ mod movement;
 pub mod player;
 pub mod target;
 
-pub(super) fn plugin(app: &mut App) {
+pub fn plugin(app: &mut App) {
     app.add_plugins((
         debug::plugin,
         level::plugin,

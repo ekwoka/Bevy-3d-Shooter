@@ -6,11 +6,20 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{AppSystems, screens::Screen, theme::prelude::*};
+use crate::{screens::Screen, theme::prelude::*};
 
 pub(super) fn plugin(app: &mut App) {
     // Spawn splash screen.
     app.insert_resource(ClearColor(SPLASH_BACKGROUND_COLOR));
+    app.configure_sets(
+        Update,
+        (
+            AppSystems::TickTimers,
+            AppSystems::RecordInput,
+            AppSystems::Update,
+        )
+            .chain(),
+    );
     app.add_systems(OnEnter(Screen::Splash), spawn_splash_screen);
 
     // Animate splash screen.
@@ -142,4 +151,17 @@ fn check_splash_timer(timer: ResMut<SplashTimer>, mut next_screen: ResMut<NextSt
 
 fn enter_title_screen(mut next_screen: ResMut<NextState<Screen>>) {
     next_screen.set(Screen::Title);
+}
+
+/// High-level groupings of systems for the app in the `Update` schedule.
+/// When adding a new variant, make sure to order it in the `configure_sets`
+/// call above.
+#[derive(SystemSet, Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
+enum AppSystems {
+    /// Tick timers.
+    TickTimers,
+    /// Record player input.
+    RecordInput,
+    /// Do everything else (consider splitting this into further variants).
+    Update,
 }

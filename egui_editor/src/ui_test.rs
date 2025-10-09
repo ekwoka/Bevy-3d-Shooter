@@ -82,9 +82,10 @@ pub fn build_ui(mut commands: Commands, type_registry: Res<AppTypeRegistry>) {
                 .type_info()
                 .ty()
                 .type_path_table()
-                .short_path()
+                .path()
                 .to_string()
         })
+        .filter(|path| path.contains("demo"))
         .collect::<Vec<_>>();
     commands.spawn((
         Node {

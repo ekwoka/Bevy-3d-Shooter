@@ -20,8 +20,6 @@ struct Target;
 struct TargetSpawner;
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<Target>();
-    app.register_type::<TargetSpawner>();
     app.add_observer(setup_target);
     app.add_systems(Update, (handle_click, spawn_target));
     app.add_input_context::<WeaponContext>();

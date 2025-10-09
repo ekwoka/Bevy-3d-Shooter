@@ -3,10 +3,8 @@ use bevy::prelude::*;
 use crate::asset_tracking::LoadResource;
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<InteractionPalette>();
     app.add_systems(Update, apply_interaction_palette);
 
-    app.register_type::<InteractionAssets>();
     app.load_resource::<InteractionAssets>();
 }
 

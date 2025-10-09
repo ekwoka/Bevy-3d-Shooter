@@ -10,9 +10,6 @@ use avian_bullet_trajectory::BulletPhysicsConfig;
 use avian3d::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<Player>()
-        .register_type::<WeaponSpawner>();
-
     app.add_observer(setup_player)
         .add_observer(handled_player_looking)
         .add_observer(setup_weapon_spawner);

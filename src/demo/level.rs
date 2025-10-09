@@ -9,8 +9,6 @@ use bevy_trenchbroom::prelude::*;
 use crate::{asset_tracking::LoadResource, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<Level>();
-    app.register_type::<Ball>();
     app.add_observer(setup_sphere);
     app.load_resource::<LevelAssets>();
 }
